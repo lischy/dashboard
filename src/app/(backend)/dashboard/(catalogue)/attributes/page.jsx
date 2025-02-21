@@ -1,0 +1,31 @@
+import React from "react";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import Search from "@/app/components/reusable/search";
+import { CreateButton } from "@/app/components/backend/buttons";
+import AttributesTable from "@/app/components/backend/dashboardAttributes/attributesTable";
+
+export default function attributes() {
+  return (
+    <>
+      <Typography> Attributes</Typography>
+      <Box
+        sx={{
+          width: 1,
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          pt: 2,
+          pb: 2,
+        }}
+      >
+        <Search placeholder="Search attributes..." />
+        <CreateButton
+          label="Add attribute"
+          href={`/dashboard/attributes/add`}
+        />
+      </Box>
+      <AttributesTable />
+    </>
+  );
+}
