@@ -6,8 +6,8 @@ import Typography from "@mui/material/Typography";
 export default async function CategoriesTable() {
   const categories = await fetchCategories();
 
-  return categories ? (
-    <CategoriesTableBody categories={categories} />
+  return categories?.data?.length > 0 ? (
+    <CategoriesTableBody categories={categories.data} />
   ) : (
     <Typography>No products categories</Typography>
   );

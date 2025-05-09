@@ -13,6 +13,13 @@ import Paper from "@mui/material/Paper";
 import EnhancedTableToolbar from "../enhancedTableToolbar";
 import EnhancedTableHead from "../enhancedTableHead";
 import TablePagination from "@mui/material/TablePagination";
+import {
+  ViewButton,
+  DeleteIconButton,
+} from "@/app/components/backend/dashboardCategories/buttons";
+import CategoryDrawerButton from "@/app/components/backend/dashboardCategories/categoryDrawerButton";
+
+import AlertDialog from "@/app/components/backend/dashboardCategories/deleteAlert";
 
 const headCells = [
   {
@@ -67,30 +74,35 @@ const CategoriesTableBody = ({ categories }) => {
   const filteredProductsCategories = useMemo(() => {
     if (search) {
       return productsCategories.filter((prodCat) => {
-        return prodCat["Name"]
+        return prodCat["name"]
           .toLowerCase()
           .includes(search?.toLocaleLowerCase());
       });
     } else return productsCategories;
   }, [search, productsCategories]);
   const handleChangePage = (event, newPage) => {
+    console.log("called handleChangePage");
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event) => {
+    console.log("called handleChangeRowsPerPage");
+
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
   const handlePublishedChange = (event) => {
+    console.log("called handlePublishedChange");
+
     const { id } = event.target;
     console.log(id);
     setProductsCategories((currentproductsCategories) => {
       return currentproductsCategories.map((prodCat) => {
-        if (prodCat.ID == id) {
+        if (prodCat.category_id == id) {
           return {
             ...prodCat,
-            PUBLISHED: !prodCat.PUBLISHED,
+            published: !prodCat.published,
           };
         } else {
           return prodCat;
@@ -99,14 +111,18 @@ const CategoriesTableBody = ({ categories }) => {
     });
   };
   const handleRequestSort = (event, property) => {
+    console.log("called handleRequestSort");
+
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
   const handleSelectAllClick = (event) => {
+    console.log("called handleSelectAllClick");
+
     if (event.target.checked) {
-      const newSelected = filteredProductsCategories.map((n) => n.ID);
+      const newSelected = filteredProductsCategories.map((n) => n.category_id);
       setSelected(newSelected);
       return;
     }
@@ -114,6 +130,8 @@ const CategoriesTableBody = ({ categories }) => {
   };
 
   const handleClick = (event, id) => {
+    console.log("called handleClick");
+
     const selectedIndex = selected.indexOf(id);
     let newSelected = [];
 
@@ -130,6 +148,36 @@ const CategoriesTableBody = ({ categories }) => {
       );
     }
     setSelected(newSelected);
+  };
+
+  //open alert dialo
+  const [openRemoveCategoryAlert, setOpenRemoveCategoryAlert] =
+    React.useState(false);
+  const [removeRowId, setRemoveRowId] = React.useState(null);
+  const handleRemoveCategoryAlertClickOpen = (row_id) => {
+    console.log("called handleRemoveCategoryAlertClickOpen");
+
+    setRemoveRowId(row_id);
+    setOpenRemoveCategoryAlert(true);
+  };
+
+  const handleRemoveCategoryAlertClose = (event, row_id) => {
+    console.log("called handleRemoveCategoryAlertClose");
+
+    setOpenRemoveCategoryAlert(false);
+  };
+  const handleCategoryDelete = (remove_row_id) => {
+    console.log("called handleCategoryDelete");
+
+    console.log(remove_row_id);
+    const filtered = productsCategories.filter((row) => {
+      return row.category_id !== remove_row_id;
+    });
+    console.log(filtered);
+    // setRows(filtered);
+    setProductsCategories(filtered);
+    setOpenRemoveCategoryAlert(false);
+    // updateProductProducts({ variants: filtered, product_id: product_id });
   };
 
   // Avoid a layout jump when reaching the last page with empty rows.
@@ -150,6 +198,12 @@ const CategoriesTableBody = ({ categories }) => {
   }, [order, orderBy, page, rowsPerPage, filteredProductsCategories]);
   return (
     <Box sx={{ width: "100%" }}>
+      <AlertDialog
+        open={openRemoveCategoryAlert}
+        handleClose={handleRemoveCategoryAlertClose}
+        handleDelete={handleCategoryDelete}
+        row={removeRowId}
+      />
       <Paper sx={{ width: "100%", mb: 2 }}>
         <EnhancedTableToolbar
           numSelected={selected.length}
@@ -172,7 +226,7 @@ const CategoriesTableBody = ({ categories }) => {
             />
             <TableBody>
               {visibleRows.map((row, index) => {
-                const isItemSelected = selected.includes(row.ID);
+                const isItemSelected = selected.includes(row.category_id);
                 const labelId = `enhanced-table-checkbox-${index}`;
                 return (
                   <TableRow
@@ -180,14 +234,14 @@ const CategoriesTableBody = ({ categories }) => {
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
-                    key={row.ID}
+                    key={row.category_id}
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
                         color="primary"
-                        onClick={(event) => handleClick(event, row.ID)}
+                        onClick={(event) => handleClick(event, row.category_id)}
                         checked={isItemSelected}
                         inputProps={{
                           "aria-labelledby": labelId,
@@ -200,19 +254,29 @@ const CategoriesTableBody = ({ categories }) => {
                       scope="row"
                       padding="none"
                     >
-                      {row["ID"]}
+                      {row["category_id"]}
                     </TableCell>
-                    <TableCell align="right">{row.Icon}</TableCell>
-                    <TableCell align="right">{row.Name}</TableCell>
-                    <TableCell align="right">{row["Description"]}</TableCell>
+                    <TableCell align="right">{row?.Icon}</TableCell>
+                    <TableCell align="right">{row?.name}</TableCell>
+                    <TableCell align="right">{row["description"]}</TableCell>
                     <TableCell align="right">
                       <Switch
-                        checked={row.PUBLISHED}
+                        checked={row.published}
                         onChange={handlePublishedChange}
-                        id={row.ID}
+                        id={row?.category_id}
                       />
                     </TableCell>
-                    <TableCell align="right">{row.ACTIONS}</TableCell>
+                    <TableCell align="right">
+                      <CategoryDrawerButton
+                        action="edit"
+                        categoryId={row?.category_id}
+                      />
+                      <DeleteIconButton
+                        handleDelete={() =>
+                          handleRemoveCategoryAlertClickOpen(row?.category_id)
+                        }
+                      />
+                    </TableCell>
                   </TableRow>
                 );
               })}

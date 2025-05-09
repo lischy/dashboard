@@ -2,10 +2,9 @@ import React from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Search from "@/app/components/reusable/search";
-import { CreateButton } from "@/app/components/backend/buttons";
 import CategoriesTable from "@/app/components/backend/dashboardCategories/categoriesTable";
-
-export default function categories() {
+import CategoryDrawerButton from "@/app/components/backend/dashboardCategories/categoryDrawerButton";
+export default function Categories() {
   return (
     <>
       <Typography> Categories</Typography>
@@ -20,7 +19,7 @@ export default function categories() {
         }}
       >
         <Search placeholder="Search categories..." />
-        <CreateButton label="Add category" href={`/dashboard/categories/add`} />
+        <CategoryDrawerButton action="add" />
       </Box>
       <CategoriesTable />
     </>

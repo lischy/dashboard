@@ -16,6 +16,7 @@ export default function SmallCard() {
         sx={{
           maxWidth: 345,
         }}
+        variant="outlined"
       >
         <CardContent>
           <Stack spacing={2} direction="row" sx={{ alignItems: "center" }}>

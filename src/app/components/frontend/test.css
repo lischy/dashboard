@@ -1,0 +1,8 @@
+.coupon .info::after, .coupon .info::before{
+    content: "";
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background: #fafafa;
+    border-radius: 100%;
+}

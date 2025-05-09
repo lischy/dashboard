@@ -9,6 +9,7 @@ import OutlinedInput from "@mui/material/OutlinedInput";
 import { attributes } from "../../../../../attributes";
 import { GenerateVariants } from "../buttons";
 import VariantsTable from "./variantsTable";
+// import { fetchtProductVariants } from "@/app/lib/data";
 
 const selections = new Map();
 // let cartesianCombination = [];
@@ -21,7 +22,7 @@ function getCombinations(data) {
   return cartesian(...arrays);
 }
 
-const BasicSelect = () => {
+const BasicSelect = ({ setVariantRows }) => {
   const [combination, setCombination] = React.useState([]);
   const [displayTable, setDisplayTable] = React.useState(false);
   const [combinationValues, setCombinationValues] = React.useState([]);
@@ -31,8 +32,12 @@ const BasicSelect = () => {
       target: { value },
     } = event;
     const test = value.map((v) => v.VALUES.map((r) => r.VALUE)).flat();
-
+    // console.log(test); ['Teal', 'Khaki', 'Orange', 'Green', 'Mauv']
+    // (7) ['Teal', 'Khaki', 'Orange', 'Green', 'Mauv', 'Small', 'Large']
+    // https://www.tutorialspoint.com/filter-array-with-filter-and-includes-in-javascript
     if (value.length === 0) setCombinationValues([]);
+    // we want to filter array1 to include only the elements that are present in array2.
+
     if (combinationValues.length !== 0) {
       setCombinationValues(combinationValues.filter((v) => test.includes(v)));
     }
@@ -40,11 +45,15 @@ const BasicSelect = () => {
       return typeof value === "string" ? value.split(",") : value;
     });
   };
-
+  React.useEffect(() => {
+    console.log("CALLEDEDDEEEE - select");
+    selections.clear();
+  }, [selections]);
   const handleChangeValues = (event) => {
     const {
       target: { value, name },
     } = event;
+    console.log(value);
     setCombinationValues(
       // On autofill we get a stringified value.
       typeof value === "string" ? value.split(",") : value
@@ -52,13 +61,18 @@ const BasicSelect = () => {
   };
 
   const generateVariants = () => {
-    console.log("clicked");
     setCartesianCombination(getCombinations(selections));
     if (cartesianCombination.length > 0) {
       console.log(cartesianCombination.length, cartesianCombination);
       setDisplayTable(true);
     }
   };
+  // const response = async () => {
+  //   const response = await fetchtProductVariants({ product_id: product_id });
+  //   const variants = await response.data;
+  //   return variants;
+  // };
+
   return (
     <>
       <FormControl sx={{ m: 1, width: 300 }}>
@@ -127,9 +141,20 @@ const BasicSelect = () => {
       {combinationValues.length !== 0 && (
         <GenerateVariants handleclick={generateVariants} />
       )}
-      {displayTable && (
-        <VariantsTable cartesianCombination={cartesianCombination} />
-      )}
+      {/* {displayTable && (
+        <VariantsTable
+          cartesianCombination={cartesianCombination}
+          selections={selections}
+          product_id={product_id}
+        />
+      )} */}
+
+      <VariantsTable
+        cartesianCombination={cartesianCombination}
+        selections={selections}
+        setVariantRows={setVariantRows}
+        // variants={response()}
+      />
     </>
   );
 };

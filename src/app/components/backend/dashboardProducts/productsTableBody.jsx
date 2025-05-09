@@ -13,7 +13,9 @@ import Paper from "@mui/material/Paper";
 import EnhancedTableToolbar from "../enhancedTableToolbar";
 import EnhancedTableHead from "../enhancedTableHead";
 import TablePagination from "@mui/material/TablePagination";
-import { ViewButton } from "./buttons";
+import { ViewButton, EditIconButton, DeleteIconButton } from "./buttons";
+import { updateProductPublishedStatus } from "@/app/lib/actions";
+import AlertDialog from "./deleteAlert";
 
 const headCells = [
   {
@@ -87,7 +89,7 @@ const ProductsTableBody = ({ prods }) => {
       // setProducts((currentProducts) => {
       // console.log(currentProducts);
       return products.filter((prod) => {
-        return prod["PRODUCT NAME"]
+        return prod?.product_name
           .toLowerCase()
           .includes(search?.toLocaleLowerCase());
       });
@@ -95,8 +97,8 @@ const ProductsTableBody = ({ prods }) => {
       console.log(search);
     } else return products;
   }, [search, products]);
-  console.log(products);
-  console.log(filteredProducts);
+  // console.log(products);
+  // console.log(filteredProducts);
   // const handleSearch = () =>
   //   useMemo(() => {
   //     setProducts((currentProducts) => {
@@ -118,19 +120,21 @@ const ProductsTableBody = ({ prods }) => {
   };
 
   const handlePublishedChange = (event) => {
-    const { id } = event.target;
+    const { id, checked } = event.target;
+    console.log(id);
     setProducts((currentProducts) => {
       return currentProducts.map((prod) => {
-        if (prod.id == id) {
+        if (prod.product_id == id) {
           return {
             ...prod,
-            PUBLISHED: !prod.PUBLISHED,
+            published: !prod.published,
           };
         } else {
           return prod;
         }
       });
     });
+    updateProductPublishedStatus(checked, id);
   };
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -166,6 +170,30 @@ const ProductsTableBody = ({ prods }) => {
     setSelected(newSelected);
   };
 
+  //open alert dialo
+  const [openRemoveProductAlert, setOpenRemoveProductAlert] =
+    React.useState(false);
+  const [removeRowId, setRemoveRowId] = React.useState(null);
+  const handleRemoveProductAlertClickOpen = (row_id) => {
+    setRemoveRowId(row_id);
+    setOpenRemoveProductAlert(true);
+  };
+
+  const handleRemoveProductAlertClose = (event, row_id) => {
+    setOpenRemoveProductAlert(false);
+  };
+  const handleProductDelete = (remove_row_id) => {
+    console.log(remove_row_id);
+    const filtered = products.filter((row) => {
+      return row.product_id !== remove_row_id;
+    });
+    console.log(filtered);
+    // setRows(filtered);
+    setProducts(filtered);
+    setOpenRemoveProductAlert(false);
+    // updateProductProducts({ variants: filtered, product_id: product_id });
+  };
+
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0
@@ -182,6 +210,12 @@ const ProductsTableBody = ({ prods }) => {
   }, [order, orderBy, page, rowsPerPage, filteredProducts]);
   return (
     <Box sx={{ width: "100%" }}>
+      <AlertDialog
+        open={openRemoveProductAlert}
+        handleClose={handleRemoveProductAlertClose}
+        handleDelete={handleProductDelete}
+        row={removeRowId}
+      />
       <Paper sx={{ width: "100%", mb: 2 }}>
         <EnhancedTableToolbar
           numSelected={selected.length}
@@ -203,8 +237,8 @@ const ProductsTableBody = ({ prods }) => {
               rowCount={filteredProducts.length}
             />
             <TableBody>
-              {visibleRows.map((row, index) => {
-                const isItemSelected = selected.includes(row.id);
+              {visibleRows.map((product, index) => {
+                const isItemSelected = selected.includes(product?.product_id);
                 const labelId = `enhanced-table-checkbox-${index}`;
                 return (
                   <TableRow
@@ -212,14 +246,16 @@ const ProductsTableBody = ({ prods }) => {
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
-                    key={row.id}
+                    key={product?.product_id}
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
                         color="primary"
-                        onClick={(event) => handleClick(event, row.id)}
+                        onClick={(event) =>
+                          handleClick(event, product?.product_id)
+                        }
                         checked={isItemSelected}
                         inputProps={{
                           "aria-labelledby": labelId,
@@ -232,25 +268,32 @@ const ProductsTableBody = ({ prods }) => {
                       scope="row"
                       padding="none"
                     >
-                      {row["PRODUCT NAME"]}
+                      {product?.product_name}
                     </TableCell>
-                    <TableCell align="right">{row.CATEGORY}</TableCell>
-                    <TableCell align="right">{row.price}</TableCell>
-                    <TableCell align="right">{row["Sale Price"]}</TableCell>
-                    <TableCell align="right">{row.STOCK}</TableCell>
-                    <TableCell align="right">{row.STATUS}</TableCell>
+                    <TableCell align="right">{product?.category}</TableCell>
+                    <TableCell align="right">{product?.price}</TableCell>
+                    <TableCell align="right">{product?.sale_price}</TableCell>
+                    <TableCell align="right">{product?.stock}</TableCell>
+                    <TableCell align="right">{product.status}</TableCell>
                     {/* <TableCell align="right">{row.View}</TableCell> */}
                     <TableCell align="right">
-                      <ViewButton id={row.id} />
+                      <ViewButton id={product?.product_id} />
                     </TableCell>
                     <TableCell>
                       <Switch
-                        checked={row.PUBLISHED}
+                        checked={product?.published}
                         onChange={handlePublishedChange}
-                        id={row.id}
+                        id={product?.product_id}
                       />
                     </TableCell>
-                    <TableCell align="right">{row.ACTIONS}</TableCell>
+                    <TableCell align="right">
+                      <EditIconButton id={product?.product_id} />
+                      <DeleteIconButton
+                        handleDelete={() =>
+                          handleRemoveProductAlertClickOpen(product?.product_id)
+                        }
+                      />
+                    </TableCell>
                   </TableRow>
                 );
               })}

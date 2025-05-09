@@ -1,6 +1,6 @@
 "use client";
-import React from "react";
-import { useSearchParams } from "next/navigation";
+import React, { useEffect } from "react";
+import { useParams } from "next/navigation";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -13,7 +13,12 @@ import Paper from "@mui/material/Paper";
 import EnhancedTableToolbar from "../enhancedTableToolbar";
 import EnhancedTableHead from "../enhancedTableHead";
 import TablePagination from "@mui/material/TablePagination";
-import { DeleteButton, EditButton } from "../buttons";
+import {
+  DeleteButton,
+  EditButton,
+} from "@/app/components/backend/dashboardAttributes/buttons";
+import { fetchtAtributeValuesById } from "@/app/lib/data";
+import { useRouterRefreshContext } from "@/app/context/routerRefresh";
 
 const headCells = [
   {
@@ -48,16 +53,31 @@ const headCells = [
   },
 ];
 
-const AttributesTableBody = ({ attribValues, attributeId }) => {
+const AttributesTableBody = () => {
   const [selected, setSelected] = React.useState([]);
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("calories");
-  const [attributesValues, setAttributesValues] = React.useState(attribValues);
+  const [attributesValues, setAttributesValues] = React.useState([]);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [page, setPage] = React.useState(0);
-  const searchParams = useSearchParams();
+  const params = useParams();
+  const { parent } = params;
+  const { refresh, setRefresh } = useRouterRefreshContext();
 
-  const search = searchParams.get("query");
+  const response = async () => {
+    const response = await fetchtAtributeValuesById(parent);
+    console.log(response.data);
+    if (response.status !== 200) {
+      return;
+    }
+    setAttributesValues(response?.data);
+  };
+
+  useEffect(() => {
+    console.log("called");
+    response();
+  }, [refresh]);
+
   // const filteredAttributesValues = useMemo(() => {
   //   if (search) {
   //     return attributesValues.filter((prodAttrib) => {
@@ -81,10 +101,10 @@ const AttributesTableBody = ({ attribValues, attributeId }) => {
     console.log(id);
     setAttributesValues((currentAttributesValues) => {
       return currentAttributesValues.map((prodAttrib) => {
-        if (prodAttrib.ID == id) {
+        if (prodAttrib.attribute_value_id == id) {
           return {
             ...prodAttrib,
-            PUBLISHED: !prodAttrib.PUBLISHED,
+            published: !prodAttrib.published,
           };
         } else {
           return prodAttrib;
@@ -100,7 +120,7 @@ const AttributesTableBody = ({ attribValues, attributeId }) => {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = attributesValues.map((n) => n.ID);
+      const newSelected = attributesValues.map((n) => n.attribute_value_id);
       setSelected(newSelected);
       return;
     }
@@ -139,99 +159,114 @@ const AttributesTableBody = ({ attribValues, attributeId }) => {
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
     );
   }, [order, orderBy, page, rowsPerPage, attributesValues]);
+
   return (
-    <Box sx={{ width: "100%" }}>
-      <Paper sx={{ width: "100%", mb: 2 }}>
-        <EnhancedTableToolbar
-          numSelected={selected.length}
-          heading="Attributes"
-        />
-        <TableContainer>
-          <Table
-            sx={{ minWidth: 750 }}
-            aria-labelledby="tableTitle"
-            size={"medium"}
-          >
-            <EnhancedTableHead
-              headCells={headCells}
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={attributesValues.length}
-            />
-            <TableBody>
-              {visibleRows.map((row, index) => {
-                const isItemSelected = selected.includes(row.ID);
-                const labelId = `enhanced-table-checkbox-${index}`;
-                return (
-                  <TableRow
-                    hover
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row.ID}
-                    selected={isItemSelected}
-                    sx={{ cursor: "pointer" }}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        onClick={(event) => handleClick(event, row.ID)}
-                        checked={isItemSelected}
-                        inputProps={{
-                          "aria-labelledby": labelId,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      id={labelId}
-                      scope="row"
-                      padding="none"
+    attributesValues.length > 0 && (
+      <Box sx={{ width: "100%" }}>
+        <Paper sx={{ width: "100%", mb: 2 }}>
+          <EnhancedTableToolbar
+            numSelected={selected.length}
+            heading="Attributes values"
+            selected={selected?.length > 0 ? selected : []}
+            attributeId={parent}
+            setSelected={setSelected}
+            action="deleteAttribute"
+          />
+          <TableContainer>
+            <Table
+              sx={{ minWidth: 750 }}
+              aria-labelledby="tableTitle"
+              size={"medium"}
+            >
+              <EnhancedTableHead
+                headCells={headCells}
+                numSelected={selected.length}
+                order={order}
+                orderBy={orderBy}
+                onSelectAllClick={handleSelectAllClick}
+                onRequestSort={handleRequestSort}
+                rowCount={attributesValues.length}
+              />
+              <TableBody>
+                {visibleRows.map((row, index) => {
+                  const isItemSelected = selected.includes(
+                    row.attribute_value_id
+                  );
+                  const labelId = `enhanced-table-checkbox-${index}`;
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      key={row.attribute_value_id}
+                      selected={isItemSelected}
+                      sx={{ cursor: "pointer" }}
                     >
-                      {row["ID"]}
-                    </TableCell>
-                    <TableCell align="right">{row["DISPLAY NAME"]}</TableCell>
-                    <TableCell align="right">{row.VALUE}</TableCell>
-                    <TableCell align="right">
-                      <Switch
-                        checked={row.PUBLISHED}
-                        onChange={handlePublishedChange}
-                        id={row.ID}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <EditButton id={row.ID} parent={attributeId} />
-                      <DeleteButton />
-                    </TableCell>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          color="primary"
+                          onClick={(event) =>
+                            handleClick(event, row.attribute_value_id)
+                          }
+                          checked={isItemSelected}
+                          inputProps={{
+                            "aria-labelledby": labelId,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell
+                        component="th"
+                        id={labelId}
+                        scope="row"
+                        padding="none"
+                      >
+                        {row["attribute_value_id"]}
+                      </TableCell>
+                      <TableCell align="right">{row["display_name"]}</TableCell>
+                      <TableCell align="right">{row.value}</TableCell>
+                      <TableCell align="right">
+                        <Switch
+                          checked={row.published}
+                          onChange={handlePublishedChange}
+                          id={row.attribute_value_id}
+                          disabled
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <EditButton
+                          id={row.attribute_value_id}
+                          parent={parent}
+                        />
+                        <DeleteButton />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {emptyRows > 0 && (
+                  <TableRow
+                    style={{
+                      height: 53 * emptyRows,
+                    }}
+                  >
+                    <TableCell colSpan={6} />
                   </TableRow>
-                );
-              })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 53 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={attributesValues.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
-    </Box>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={attributesValues.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+      </Box>
+    )
   );
 };
 

@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
+import { useParams } from "next/navigation";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -11,9 +12,14 @@ import Paper from "@mui/material/Paper";
 import TablePagination from "@mui/material/TablePagination";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
-import { CancelButton, UpdateButton } from "./buttons";
+import Avatar from "@mui/material/Avatar";
+import { CancelButton, DeleteButton } from "./buttons";
 import { TableFooter } from "@mui/material";
-
+import { updateProductVariants } from "@/app/lib/actions";
+import { fetchtProductVariants, fetchtProductImages } from "@/app/lib/data";
+import Button from "@mui/material/Button";
+import ImageDialog from "./imageDialog";
+import AlertDialog from "./deleteAlert";
 const headCells = [
   {
     id: "name",
@@ -83,45 +89,101 @@ function createData(
 ) {
   return { Id, Image, Combination, Sku, Barcode, Price, SalePrice, Quantity };
 }
-
-// const rows = [
-//   createData("Frozen yoghurt", 159, 6.0, 24, 4.0),
-//   createData("Ice cream sandwich", 237, 9.0, 37, 4.3),
-//   createData("Eclair", 262, 16.0, 24, 6.0),
-//   createData("Cupcake", 305, 3.7, 67, 4.3),
-//   createData("Gingerbread", 356, 16.0, 49, 3.9),
-// ];
-
-const debounce = (callback, wait) => {
-  let timeoutId = null;
-  return (...args) => {
-    window.clearTimeout(timeoutId);
-    timeoutId = window.setTimeout(() => {
-      callback.apply(null, args);
-    }, wait);
-  };
-};
-
-const VariantsTable = ({ cartesianCombination }) => {
+let productImages;
+const VariantsTable = ({
+  cartesianCombination,
+  selections,
+  setVariantRows,
+}) => {
+  const params = useParams();
+  const { id } = params;
+  const product_id = id;
   const [rows, setRows] = React.useState([]);
-  React.useMemo(() => {
-    setRows(
-      cartesianCombination.map((item, id) =>
-        createData(id, "", item.join(", "), "", "", "", "", "")
-      )
-    );
-  }, [cartesianCombination]);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [page, setPage] = React.useState(0);
-  console.log(rows, cartesianCombination);
+  // console.log(cartesianCombination);
+  useEffect(() => {
+    // console.log("CALLED, CALLED, - variants table ", cartesianCombination);
+
+    const response = async () => {
+      const response = await fetchtProductVariants({ product_id: product_id });
+      const responseImages = await fetchtProductImages({
+        product_id: product_id,
+      });
+      const productVariants = response.data;
+      productImages = responseImages.data;
+      // console.log(productImages);
+      if (productVariants) {
+        const filterProductVariants = productVariants?.filter((variant) => {
+          // console.log(variant, variant !== null);
+          return variant !== null;
+        });
+
+        const combined = [
+          ...filterProductVariants,
+          ...cartesianCombination?.map((item, id) =>
+            createData(
+              id + filterProductVariants.length + 1,
+              "",
+              cartesianCombination.length > 1 ? item?.join(", ") : item,
+              "",
+              "",
+              "",
+              "",
+              ""
+            )
+          ),
+        ];
+
+        //  Normalize each combination
+        const normalizedData = combined.map((item) => ({
+          ...item,
+          normalizedCombination: item.Combination.split(", ").sort().join(", "),
+        }));
+        // Remove null values and filter unique objects based on the 'Combination' key
+        const uniqueData = normalizedData.filter(
+          (item, index, self) =>
+            item &&
+            self.findIndex(
+              (t) => t.normalizedCombination === item.normalizedCombination
+            ) === index
+        );
+
+        const cleanedData = uniqueData.map(
+          ({ normalizedCombination, ...rest }) => rest
+        );
+        // console.log(uniqueData, cleanedData);
+
+        setRows(cleanedData);
+        setVariantRows(cleanedData);
+      } else {
+        setRows(() => {
+          return [
+            ...cartesianCombination?.map((item, id) =>
+              createData(id, "", item.join(", "), "", "", "", "", "")
+            ),
+          ];
+        });
+        setVariantRows(() => {
+          return [
+            ...cartesianCombination?.map((item, id) =>
+              createData(id, "", item.join(", "), "", "", "", "", "")
+            ),
+          ];
+        });
+      }
+    };
+
+    response();
+  }, [cartesianCombination]);
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-  const handleInpuChange = debounce((event, Id) => {
+  const handleInpuChange = (event, Id) => {
     const {
       target: { value, name },
     } = event;
-    // console.log(name);
+    console.log(name, value);
     if (value !== null) {
       const updatedRows = rows.map((row) => {
         // console.log(row, Id == row.Id);
@@ -132,22 +194,94 @@ const VariantsTable = ({ cartesianCombination }) => {
         }
       });
       setRows(updatedRows);
+      setVariantRows(updatedRows);
     }
     console.log(rows);
-  }, 4000);
+  };
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
+  //dialo
+  const [open, setOpen] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleCloseProductImageClick = (value) => {
+    setOpen(false);
+    if (rowId !== null && value !== null) {
+      const updatedRows = rows.map((row) => {
+        // console.log(row, Id == row.Id);
+        if (row.Id == rowId) {
+          return { ...row, Image: value };
+        } else {
+          return row;
+        }
+      });
+      console.log(updatedRows);
+      setRows(updatedRows);
+      setVariantRows(updatedRows);
+    }
+  };
+
   const visibleRows = React.useMemo(() => {
-    console.log("called");
-    return (
-      [...rows]
-        // .sort(getComparator(order, orderBy))
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+    // console.log("called");
+    return [...rows].slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage
     );
   }, [page, rowsPerPage, rows]);
+
+  const handleProductUpdate = () => {
+    updateProductVariants(rows, selections, cartesianCombination, product_id);
+  };
+
+  //handle imae update
+  const [rowId, setRowId] = React.useState(0);
+
+  const handleClick = (event, id) => {
+    // console.log(event.target.tagName, id);
+    if (event.target.tagName === "BUTTON") {
+      setRowId(id);
+    } else {
+      setRowId(0);
+    }
+  };
+  //open alert dialo
+  const [openRemoveVariantAlert, setOpenRemoveVariantAlert] =
+    React.useState(false);
+  const [removeRowId, setRemoveRowId] = React.useState(null);
+  const handleRemoveVariantAlertClickOpen = (event, row_id) => {
+    setRemoveRowId(row_id);
+    setOpenRemoveVariantAlert(true);
+  };
+
+  const handleRemoveVariantAlertClose = (event, row_id) => {
+    setOpenRemoveVariantAlert(false);
+  };
+  const handleRemoveVariant = (remove_row_id) => {
+    console.log(remove_row_id);
+    const filtered = rows.filter((row) => {
+      console.log(row, row.Id == rowId);
+      return row.Id !== remove_row_id;
+    });
+    // console.log(filtered, rowId);
+    setRows(filtered);
+    setVariantRows(filtered);
+    setOpenRemoveVariantAlert(false);
+    updateProductVariants({ variants: filtered, product_id: product_id });
+  };
+
+  if (rows.length === 0) {
+    return;
+  }
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
@@ -170,22 +304,60 @@ const VariantsTable = ({ cartesianCombination }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {visibleRows.map((row) => {
-                console.log(row.Combination, row.Id);
+              {visibleRows.map((row, id) => {
+                // console.log(row);
                 return (
                   <TableRow
-                    key={row.Id}
+                    key={id}
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    onClick={(event) => handleClick(event, row.Id)}
                   >
-                    <TableCell>Image</TableCell>
+                    <TableCell>
+                      <Avatar>
+                        <img
+                          src={
+                            row?.Image
+                              ? `/${row.Image}`
+                              : productImages !== null
+                              ? `/${productImages[0]}`
+                              : null
+                          }
+                        />
+                      </Avatar>
+                      <Button
+                        variant="text"
+                        disableRipple
+                        sx={{
+                          minWidth: "unset",
+                          textTransform: "none",
+                          padding: "unset",
+                          background: "none",
+                        }}
+                        onClick={handleClickOpen}
+                      >
+                        Change
+                      </Button>
+                      <ImageDialog
+                        open={open}
+                        onClose={handleClose}
+                        productImages={
+                          productImages !== null ? productImages : []
+                        }
+                        handleCloseProductImageClick={
+                          handleCloseProductImageClick
+                        }
+                      />
+                    </TableCell>
                     <TableCell>{row.Combination}</TableCell>
                     <TableCell align="right">
                       <TextField
                         placeholder="Sku"
                         size="small"
                         sx={{ width: "50%" }}
+                        value={row?.Sku}
                         onChange={(event) => handleInpuChange(event, row.Id)}
                         name="Sku"
+                        data-rowid={row.Id}
                       />
                     </TableCell>
                     <TableCell align="right">
@@ -195,6 +367,8 @@ const VariantsTable = ({ cartesianCombination }) => {
                         sx={{ width: "50%" }}
                         onChange={(event) => handleInpuChange(event, row.Id)}
                         name="Barcode"
+                        value={row?.Barcode}
+                        data-rowid={row.Id}
                       />
                     </TableCell>
                     <TableCell align="right">
@@ -204,6 +378,8 @@ const VariantsTable = ({ cartesianCombination }) => {
                         sx={{ width: "50%" }}
                         onChange={(event) => handleInpuChange(event, row.Id)}
                         name="Price"
+                        value={row?.Price}
+                        data-rowid={row.Id}
                       />
                     </TableCell>
                     <TableCell align="right">
@@ -213,6 +389,8 @@ const VariantsTable = ({ cartesianCombination }) => {
                         sx={{ width: "50%" }}
                         onChange={(event) => handleInpuChange(event, row.Id)}
                         name="SalePrice"
+                        value={row?.SalePrice}
+                        data-rowid={row.Id}
                       />
                     </TableCell>
                     <TableCell align="right">
@@ -222,13 +400,27 @@ const VariantsTable = ({ cartesianCombination }) => {
                         sx={{ width: "50%" }}
                         onChange={(event) => handleInpuChange(event, row.Id)}
                         name="Quantity"
+                        value={row?.Quantity}
+                        data-rowid={row.Id}
                       />
                     </TableCell>
-                    <TableCell align="right"> Action</TableCell>
+                    <TableCell align="right">
+                      <DeleteButton
+                        onClick={(event) =>
+                          handleRemoveVariantAlertClickOpen(event, row.Id)
+                        }
+                      />
+                    </TableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
+            <AlertDialog
+              open={openRemoveVariantAlert}
+              handleClose={handleRemoveVariantAlertClose}
+              handleDelete={handleRemoveVariant}
+              row={removeRowId}
+            />
             <TableFooter>
               <TableRow></TableRow>
             </TableFooter>
@@ -237,21 +429,21 @@ const VariantsTable = ({ cartesianCombination }) => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={cartesianCombination.length}
+          count={cartesianCombination?.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      <Stack
+      {/* <Stack
         spacing={2}
         direction="row"
         sx={{ justifyContent: "space-between" }}
       >
         <CancelButton />
-        <UpdateButton />
-      </Stack>
+        <UpdateButton handleProductUpdate={handleProductUpdate} />
+      </Stack> */}
     </Box>
   );
 };

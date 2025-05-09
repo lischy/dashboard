@@ -1,0 +1,88 @@
+The expression self.findIndex(t => t.Combination === item.Combination) === index is part of the filtering logic that checks whether the current item is the first occurrence of that particular Combination value in the array. Let's break it down to understand how it works:
+
+Components of the Expression:
+self.findIndex(t => t.Combination === item.Combination):
+
+self is the entire array (i.e., the data array you're filtering).
+
+findIndex is an array method that returns the index of the first element in the array that satisfies the provided testing function.
+
+The testing function is (t => t.Combination === item.Combination), which checks if the Combination value of the current element t matches the Combination value of the item (the element currently being processed in the filter loop).
+
+This means that findIndex will return the index of the first occurrence of any item with the same Combination as the current item.
+
+=== index:
+
+This checks if the index returned by findIndex is equal to the current index of the element (index in the filter loop).
+
+If the index returned by findIndex is equal to the current index (index), it means that the current item is the first occurrence of that particular Combination.
+
+How it Works:
+On each iteration, the filter function checks if the current item (item) is the first one in the array that has its specific Combination value.
+
+If it is the first occurrence of that Combination, findIndex will return the index of the current item, which will be equal to index. Therefore, the filter condition will evaluate to true, and the item will be included in the filtered result.
+
+If the item is not the first occurrence (i.e., another item with the same Combination appears earlier in the array), findIndex will return the index of the earlier item, and the current index will not match that, resulting in false, so the item will be excluded from the filtered result.
+
+Example:
+Let’s take a simplified example:
+
+javascript
+Copy
+Edit
+const data = [
+  {"Id": 1, "Combination": "Cotton, Small, Teal"},
+  {"Id": 2, "Combination": "Cotton, Small, Khaki"},
+  {"Id": 3, "Combination": "Leather, Small, Teal"},
+  {"Id": 4, "Combination": "Cotton, Small, Teal"},
+  {"Id": 5, "Combination": "Leather, Small, Teal"}
+];
+Now, when you run the filter with findIndex, here's how it would behave:
+
+First iteration (index = 0, item = {"Id": 1, "Combination": "Cotton, Small, Teal"}):
+
+self.findIndex(t => t.Combination === "Cotton, Small, Teal") will return 0 because the first item in the array has the Combination value "Cotton, Small, Teal".
+
+index === 0, so the condition 0 === 0 evaluates to true, and this item will be included in the result.
+
+Second iteration (index = 1, item = {"Id": 2, "Combination": "Cotton, Small, Khaki"}):
+
+self.findIndex(t => t.Combination === "Cotton, Small, Khaki") will return 1 because the first item with that combination is at index 1.
+
+index === 1, so the condition 1 === 1 evaluates to true, and this item will be included in the result.
+
+Third iteration (index = 2, item = {"Id": 3, "Combination": "Leather, Small, Teal"}):
+
+self.findIndex(t => t.Combination === "Leather, Small, Teal") will return 2 because the first item with that combination is at index 2.
+
+index === 2, so the condition 2 === 2 evaluates to true, and this item will be included in the result.
+
+Fourth iteration (index = 3, item = {"Id": 4, "Combination": "Cotton, Small, Teal"}):
+
+self.findIndex(t => t.Combination === "Cotton, Small, Teal") will return 0 because the first item with that combination was at index 0.
+
+index === 3, so the condition 0 === 3 evaluates to false, and this item will be excluded from the result (since it's not the first occurrence of that combination).
+
+Fifth iteration (index = 4, item = {"Id": 5, "Combination": "Leather, Small, Teal"}):
+
+self.findIndex(t => t.Combination === "Leather, Small, Teal") will return 2 because the first item with that combination was at index 2.
+
+index === 4, so the condition 2 === 4 evaluates to false, and this item will be excluded from the result (since it's not the first occurrence of that combination).
+
+Final Output:
+After applying the filter with this logic, the resulting array will be:
+
+javascript
+Copy
+Edit
+[
+  {"Id": 1, "Combination": "Cotton, Small, Teal"},
+  {"Id": 2, "Combination": "Cotton, Small, Khaki"},
+  {"Id": 3, "Combination": "Leather, Small, Teal"}
+]
+Items with Combination values "Cotton, Small, Teal" and "Leather, Small, Teal" are removed after the first occurrence.
+
+Summary:
+self.findIndex(t => t.Combination === item.Combination) finds the index of the first occurrence of an item with the same Combination as item.
+
+=== index ensures that only the first occurrence (at the current index) passes the filter condition, making it part of the resulting array.

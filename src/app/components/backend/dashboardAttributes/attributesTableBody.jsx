@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -13,7 +13,14 @@ import Paper from "@mui/material/Paper";
 import EnhancedTableToolbar from "../enhancedTableToolbar";
 import EnhancedTableHead from "../enhancedTableHead";
 import TablePagination from "@mui/material/TablePagination";
-import { ViewButton } from "../buttons";
+import {
+  ViewButton,
+  DeleteIconButton,
+} from "@/app/components/backend/dashboardAttributes/buttons";
+import AttributeDrawerButton from "@/app/components/backend/dashboardAttributes/attributeDrawerButton";
+import { useRouterRefreshContext } from "@/app/context/routerRefresh";
+import { fetchtAtributes } from "@/app/lib/data";
+import { deleteProductAttribute } from "@/app/lib/actions";
 
 const headCells = [
   {
@@ -54,19 +61,28 @@ const headCells = [
   },
 ];
 
-const AttributesTableBody = ({ attributes }) => {
+const AttributesTableBody = () => {
   const [selected, setSelected] = React.useState([]);
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("calories");
-  const [productsAttributes, setProductsAttributes] =
-    React.useState(attributes);
+  const [productsAttributes, setProductsAttributes] = React.useState();
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [page, setPage] = React.useState(0);
   const searchParams = useSearchParams();
-
   const search = searchParams.get("query");
+  const { refresh, setRefresh } = useRouterRefreshContext();
+
+  const response = async () => {
+    const response = await fetchtAtributes();
+    if (response.status !== 200) return;
+    setProductsAttributes(response.data);
+  };
+
+  useEffect(() => {
+    response();
+  }, [refresh]);
   const filteredProductsAttributes = useMemo(() => {
-    if (search) {
+    if (search && productsAttributes.length > 0) {
       return productsAttributes.filter((prodAttrib) => {
         return prodAttrib["Name"]
           .toLowerCase()
@@ -88,10 +104,10 @@ const AttributesTableBody = ({ attributes }) => {
     console.log(id);
     setProductsAttributes((currentproductsAttributes) => {
       return currentproductsAttributes.map((prodAttrib) => {
-        if (prodAttrib.ID == id) {
+        if (prodAttrib.attribute_id == id) {
           return {
             ...prodAttrib,
-            PUBLISHED: !prodAttrib.PUBLISHED,
+            published: !prodAttrib.published,
           };
         } else {
           return prodAttrib;
@@ -107,7 +123,7 @@ const AttributesTableBody = ({ attributes }) => {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = filteredProductsAttributes.map((n) => n.ID);
+      const newSelected = filteredProductsAttributes.map((n) => n.attribute_id);
       setSelected(newSelected);
       return;
     }
@@ -130,9 +146,22 @@ const AttributesTableBody = ({ attributes }) => {
         selected.slice(selectedIndex + 1)
       );
     }
+    console.log(newSelected);
     setSelected(newSelected);
   };
 
+  const handleDelete = (attribute_id) => {
+    console.log("Clicked handle delete attribute", attribute_id);
+    const response = async () => {
+      const deleteResponse = await deleteProductAttribute({
+        attribute_id_array: [attribute_id],
+      });
+      if (deleteResponse.status !== 200) return;
+      setRefresh(!refresh);
+    };
+    response();
+  };
+  const toggleDrawer = () => {};
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0
@@ -144,106 +173,123 @@ const AttributesTableBody = ({ attributes }) => {
 
   const visibleRows = React.useMemo(() => {
     return (
+      productsAttributes?.length > 0 &&
       [...filteredProductsAttributes]
         // .sort(getComparator(order, orderBy))
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
     );
   }, [order, orderBy, page, rowsPerPage, filteredProductsAttributes]);
   return (
-    <Box sx={{ width: "100%" }}>
-      <Paper sx={{ width: "100%", mb: 2 }}>
-        <EnhancedTableToolbar
-          numSelected={selected.length}
-          heading="Attributes"
-        />
-        <TableContainer>
-          <Table
-            sx={{ minWidth: 750 }}
-            aria-labelledby="tableTitle"
-            size={"medium"}
-          >
-            <EnhancedTableHead
-              headCells={headCells}
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={filteredProductsAttributes.length}
-            />
-            <TableBody>
-              {visibleRows.map((row, index) => {
-                const isItemSelected = selected.includes(row.ID);
-                const labelId = `enhanced-table-checkbox-${index}`;
-                return (
-                  <TableRow
-                    hover
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row.ID}
-                    selected={isItemSelected}
-                    sx={{ cursor: "pointer" }}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        onClick={(event) => handleClick(event, row.ID)}
-                        checked={isItemSelected}
-                        inputProps={{
-                          "aria-labelledby": labelId,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell
-                      component="th"
-                      id={labelId}
-                      scope="row"
-                      padding="none"
+    productsAttributes?.length > 0 && (
+      <Box sx={{ width: "100%" }}>
+        <Paper sx={{ width: "100%", mb: 2 }}>
+          <EnhancedTableToolbar
+            numSelected={selected.length}
+            heading="Attributes"
+            selected={selected?.length > 0 ? selected : []}
+            setSelected={setSelected}
+            action="deleteAttribute"
+          />
+          <TableContainer>
+            <Table
+              sx={{ minWidth: 750 }}
+              aria-labelledby="tableTitle"
+              size={"medium"}
+            >
+              <EnhancedTableHead
+                headCells={headCells}
+                numSelected={selected.length}
+                order={order}
+                orderBy={orderBy}
+                onSelectAllClick={handleSelectAllClick}
+                onRequestSort={handleRequestSort}
+                rowCount={filteredProductsAttributes.length}
+              />
+              <TableBody>
+                {visibleRows.map((row, index) => {
+                  const isItemSelected = selected.includes(row.attribute_id);
+                  const labelId = `enhanced-table-checkbox-${index}`;
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      key={row.attribute_id}
+                      selected={isItemSelected}
+                      sx={{ cursor: "pointer" }}
                     >
-                      {row["ID"]}
-                    </TableCell>
-                    <TableCell align="right">{row.NAME}</TableCell>
-                    <TableCell align="right">{row["DISPLAY NAME"]}</TableCell>
-                    <TableCell align="right">
-                      <Switch
-                        checked={row.PUBLISHED}
-                        onChange={handlePublishedChange}
-                        id={row.ID}
-                      />
-                    </TableCell>
-                    {/* <TableCell align="right">{row["VALUES"]}</TableCell> */}
-                    <TableCell align="right">
-                      <ViewButton parent={row.ID} />
-                    </TableCell>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          color="primary"
+                          onClick={(event) =>
+                            handleClick(event, row.attribute_id)
+                          }
+                          checked={isItemSelected}
+                          inputProps={{
+                            "aria-labelledby": labelId,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell
+                        component="th"
+                        id={labelId}
+                        scope="row"
+                        padding="none"
+                      >
+                        {row["attribute_id"]}
+                      </TableCell>
+                      <TableCell align="right">{row.name}</TableCell>
+                      <TableCell align="right">{row["display_name"]}</TableCell>
+                      <TableCell align="right">
+                        <Switch
+                          checked={row.published}
+                          onChange={handlePublishedChange}
+                          id={row.attribute_id}
+                          disabled
+                        />
+                      </TableCell>
+                      {/* <TableCell align="right">{row["VALUES"]}</TableCell> */}
+                      <TableCell align="right">
+                        <ViewButton parent={row.attribute_id} />
+                      </TableCell>
 
-                    <TableCell align="right">{row.ACTION}</TableCell>
+                      <TableCell align="right">
+                        <AttributeDrawerButton
+                          action="Edit"
+                          attributeId={row?.attribute_id}
+                        />
+                        <DeleteIconButton
+                          handleDelete={() => handleDelete(row?.attribute_id)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {emptyRows > 0 && (
+                  <TableRow
+                    style={{
+                      height: 53 * emptyRows,
+                    }}
+                  >
+                    <TableCell colSpan={6} />
                   </TableRow>
-                );
-              })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: 53 * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredProductsAttributes.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
-    </Box>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredProductsAttributes.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+      </Box>
+    )
   );
 };
 

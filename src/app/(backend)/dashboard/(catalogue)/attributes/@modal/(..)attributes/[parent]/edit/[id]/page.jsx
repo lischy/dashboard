@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useRouter, useParams } from "next/navigation";
-import BasicModal from "@/app/components/backend/modal";
+import BasicModal from "@/app/components/backend/dashboardAttributes/modal";
 
 const page = () => {
   const params = useParams();

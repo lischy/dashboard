@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -13,67 +13,87 @@ import Paper from "@mui/material/Paper";
 import EnhancedTableToolbar from "../enhancedTableToolbar";
 import EnhancedTableHead from "../enhancedTableHead";
 import TablePagination from "@mui/material/TablePagination";
-import { ViewButton } from "../buttons";
+import {
+  EditButton,
+  DeleteIconButton,
+} from "@/app/components/backend/dashboardCoupons/buttons";
+import CouponDrawerButton from "@/app/components/backend/dashboardCoupons/couponDrawerButton";
+import { deleteProductCoupon } from "@/app/lib/actions";
 
 const headCells = [
   {
-    id: "id",
+    id: "CAMPAIGN NAME",
     numeric: false,
     disablePadding: true,
-    label: "ID",
+    label: "CAMPAIGN NAME",
   },
   {
-    id: "Name",
+    id: "CODE",
     numeric: true,
     disablePadding: false,
-    label: "NAME",
+    label: "CODE",
   },
   {
-    id: "Display name",
+    id: "DISCOUNT",
     numeric: true,
     disablePadding: false,
-    label: "DISPLAY NAME",
+    label: "DISCOUNT",
   },
   {
-    id: "Published",
+    id: "PUBLISHED",
     numeric: true,
     disablePadding: false,
     label: "PUBLISHED",
   },
   {
-    id: "values",
+    id: "START DATE",
     numeric: true,
     disablePadding: false,
-    label: "VALUES",
+    label: "START DATE",
   },
   {
-    id: "Action",
+    id: "END DATE",
     numeric: true,
     disablePadding: false,
-    label: "ACTION",
+    label: "END DATE",
+  },
+  {
+    id: "STATUS",
+    numeric: true,
+    disablePadding: false,
+    label: "STATUS",
+  },
+  {
+    id: "ACTIONS",
+    numeric: true,
+    disablePadding: false,
+    label: "ACTIONS",
   },
 ];
 
-const AttributesTableBody = ({ attributes }) => {
+const CouponsTableBody = ({ data }) => {
   const [selected, setSelected] = React.useState([]);
   const [order, setOrder] = React.useState("asc");
   const [orderBy, setOrderBy] = React.useState("calories");
-  const [productsAttributes, setProductsAttributes] =
-    React.useState(attributes);
+  const [coupons, setCoupons] = React.useState(data);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [page, setPage] = React.useState(0);
   const searchParams = useSearchParams();
+  useEffect(() => {
+    console.log("Data has changed");
+    setCoupons(data);
+  }, [data]);
 
   const search = searchParams.get("query");
-  const filteredProductsAttributes = useMemo(() => {
+  const filteredCoupons = useMemo(() => {
     if (search) {
-      return productsAttributes.filter((prodAttrib) => {
-        return prodAttrib["Name"]
+      return coupons.filter((coupon) => {
+        return coupon["Campaign Name"]
           .toLowerCase()
           .includes(search?.toLocaleLowerCase());
       });
-    } else return productsAttributes;
-  }, [search, productsAttributes]);
+    } else return coupons;
+  }, [search, coupons, data]);
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -86,15 +106,15 @@ const AttributesTableBody = ({ attributes }) => {
   const handlePublishedChange = (event) => {
     const { id } = event.target;
     console.log(id);
-    setProductsAttributes((currentproductsAttributes) => {
-      return currentproductsAttributes.map((prodAttrib) => {
-        if (prodAttrib.ID == id) {
+    setCoupons((currentCoupons) => {
+      return currentCoupons.map((coupon) => {
+        if (coupon.coupon_id == id) {
           return {
-            ...prodAttrib,
-            PUBLISHED: !prodAttrib.PUBLISHED,
+            ...coupon,
+            PUBLISHED: !coupon.PUBLISHED,
           };
         } else {
-          return prodAttrib;
+          return coupon;
         }
       });
     });
@@ -107,7 +127,7 @@ const AttributesTableBody = ({ attributes }) => {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = filteredProductsAttributes.map((n) => n.ID);
+      const newSelected = filteredCoupons.map((n) => n.coupon_id);
       setSelected(newSelected);
       return;
     }
@@ -132,29 +152,38 @@ const AttributesTableBody = ({ attributes }) => {
     }
     setSelected(newSelected);
   };
+  const handleDelete = (coupon_id) => {
+    console.log("Clicked handle delete coupon", coupon_id);
+    const response = async () => {
+      const deleteResponse = await deleteProductCoupon({
+        coupon_value_id_array: [coupon_id],
+      });
+    };
+    response();
+  };
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
     page > 0
-      ? Math.max(
-          0,
-          (1 + page) * rowsPerPage - filteredProductsAttributes.length
-        )
+      ? Math.max(0, (1 + page) * rowsPerPage - filteredCoupons.length)
       : 0;
 
   const visibleRows = React.useMemo(() => {
     return (
-      [...filteredProductsAttributes]
+      [...filteredCoupons]
         // .sort(getComparator(order, orderBy))
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
     );
-  }, [order, orderBy, page, rowsPerPage, filteredProductsAttributes]);
+  }, [order, orderBy, page, rowsPerPage, filteredCoupons]);
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
         <EnhancedTableToolbar
           numSelected={selected.length}
-          heading="Attributes"
+          heading="Coupons"
+          selected={selected}
+          action="deleteCoupon"
+          setSelected={setSelected}
         />
         <TableContainer>
           <Table
@@ -169,55 +198,80 @@ const AttributesTableBody = ({ attributes }) => {
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={filteredProductsAttributes.length}
+              rowCount={filteredCoupons.length}
             />
             <TableBody>
               {visibleRows.map((row, index) => {
-                const isItemSelected = selected.includes(row.ID);
+                const isItemSelected = selected.includes(row.coupon_id);
                 const labelId = `enhanced-table-checkbox-${index}`;
+                // console.log(
+                //   new Date(row["expiration_date"]),
+                //   new Date(),
+                //   new Date(row["expiration_date"]) < new Date()
+                // );
                 return (
                   <TableRow
                     hover
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
-                    key={row.ID}
+                    key={row.coupon_id}
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
                         color="primary"
-                        onClick={(event) => handleClick(event, row.ID)}
+                        onClick={(event) => handleClick(event, row.coupon_id)}
                         checked={isItemSelected}
                         inputProps={{
                           "aria-labelledby": labelId,
                         }}
                       />
                     </TableCell>
-                    <TableCell
+                    {/* <TableCell
                       component="th"
                       id={labelId}
                       scope="row"
                       padding="none"
                     >
-                      {row["ID"]}
-                    </TableCell>
-                    <TableCell align="right">{row.NAME}</TableCell>
-                    <TableCell align="right">{row["DISPLAY NAME"]}</TableCell>
+                      {row["id"]}
+                    </TableCell> */}
+                    <TableCell>{row["campaign_code"]}</TableCell>
+                    <TableCell align="right">{row["coupon_code"]}</TableCell>
+                    <TableCell align="right">{row["discount"]}</TableCell>
                     <TableCell align="right">
                       <Switch
-                        checked={row.PUBLISHED}
+                        disabled
+                        checked={row?.published || ""}
                         onChange={handlePublishedChange}
-                        id={row.ID}
+                        id={row.coupon_id}
                       />
+                    </TableCell>
+                    <TableCell align="right">
+                      {new Date().toDateString()}
+                    </TableCell>
+                    <TableCell align="right">
+                      {/* {new Date(row["Coupon Validity Time"]) > new Date()} */}
+
+                      {new Date(row["expiration_date"]).toDateString()}
+                    </TableCell>
+                    <TableCell align="right">
+                      {new Date(row["expiration_date"]) > new Date()
+                        ? "Active"
+                        : "Expired"}
                     </TableCell>
                     {/* <TableCell align="right">{row["VALUES"]}</TableCell> */}
                     <TableCell align="right">
-                      <ViewButton parent={row.ID} />
+                      <CouponDrawerButton
+                        action="Edit"
+                        couponId={row.coupon_id}
+                      />
+                      {/* <EditButton id={row.id} /> */}
+                      <DeleteIconButton
+                        handleDelete={() => handleDelete(row?.coupon_id)}
+                      />
                     </TableCell>
-
-                    <TableCell align="right">{row.ACTION}</TableCell>
                   </TableRow>
                 );
               })}
@@ -236,7 +290,7 @@ const AttributesTableBody = ({ attributes }) => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={filteredProductsAttributes.length}
+          count={filteredCoupons.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -247,4 +301,4 @@ const AttributesTableBody = ({ attributes }) => {
   );
 };
 
-export default AttributesTableBody;
+export default CouponsTableBody;

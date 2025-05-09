@@ -61,7 +61,6 @@ export default function DashboardHome() {
           whiteSpace: "nowrap",
         }}
       >
-        <CssBaseline />
         <Box
           component="main"
           sx={{
@@ -110,7 +109,7 @@ export default function DashboardHome() {
           <Piechart />
         </Grid>
       </Grid>
-      <OrdersTable />
+      <OrdersTable label="Recent Order" />
     </React.Fragment>
   );
 }

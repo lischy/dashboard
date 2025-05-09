@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-import EditAttributeForm from "./dashboardAttributes/edit-attribute-form";
+import EditAttributeForm from "./edit-attribute-form";
 import { useState, useEffect } from "react";
 
 import { fetchtAtributeValueById } from "@/app/lib/data";
@@ -25,9 +25,10 @@ export default function BasicModal({
   valueId,
 }) {
   const [attributeValue, setAttributeValue] = useState({});
-  const attribute = async (attributeId, ValueId) => {
-    const [attribute] = await fetchtAtributeValueById(attributeId, ValueId);
-    setAttributeValue(attribute);
+  const attribute = async (ValueId) => {
+    const response = await fetchtAtributeValueById({ valueId: valueId });
+    if (response.status !== 200) return;
+    setAttributeValue(response?.data);
   };
 
   useEffect(() => {
@@ -50,8 +51,11 @@ export default function BasicModal({
         <Typography id="modal-modal-description" sx={{ mt: 2 }}>
           Edit your attribute value and necessary information from here
         </Typography>
-        {attributeValue?.ID && (
-          <EditAttributeForm attributeValue={attributeValue} />
+        {attributeValue?.attribute_value_id && (
+          <EditAttributeForm
+            attributeValue={attributeValue}
+            attributeId={attributeId}
+          />
         )}
       </Box>
     </Modal>

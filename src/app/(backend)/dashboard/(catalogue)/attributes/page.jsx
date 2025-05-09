@@ -2,8 +2,9 @@ import React from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Search from "@/app/components/reusable/search";
-import { CreateButton } from "@/app/components/backend/buttons";
-import AttributesTable from "@/app/components/backend/dashboardAttributes/attributesTable";
+// import { CreateButton } from "@/app/components/backend/buttons";
+import AttributesTableBody from "@/app/components/backend/dashboardAttributes/attributesTableBody";
+import AttributeDrawerButton from "@/app/components/backend/dashboardAttributes/attributeDrawerButton";
 
 export default function attributes() {
   return (
@@ -20,12 +21,14 @@ export default function attributes() {
         }}
       >
         <Search placeholder="Search attributes..." />
-        <CreateButton
+
+        {/* <CreateButton
           label="Add attribute"
           href={`/dashboard/attributes/add`}
-        />
+        /> */}
+        <AttributeDrawerButton action="Add" />
       </Box>
-      <AttributesTable />
+      <AttributesTableBody />
     </>
   );
 }

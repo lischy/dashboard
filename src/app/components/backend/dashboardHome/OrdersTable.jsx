@@ -1,3 +1,4 @@
+"use client";
 import * as React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "@mui/material/styles";
@@ -18,6 +19,7 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import Typography from "@mui/material/Typography";
 import { orders } from "../../../../../orders";
+import { ViewButton } from "@/app/components/backend/dashboardHome/buttons";
 
 import BasicSelect from "@/app/components/reusable/Select";
 
@@ -92,7 +94,7 @@ TablePaginationActions.propTypes = {
 
 const rows = orders;
 
-export default function OrdersTable() {
+export default function OrdersTable({ label }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [action, setAction] = React.useState({});
@@ -122,7 +124,7 @@ export default function OrdersTable() {
 
   return (
     <React.Fragment>
-      <Typography variant="h3"> Recent Order </Typography>
+      <Typography variant="h3"> {label} </Typography>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead sx={{ backgroundColor: "black" }}>
@@ -173,7 +175,18 @@ export default function OrdersTable() {
                   value={action[row.id] || ""}
                   handleChange={handleActionChange}
                   component="td"
+                  // renderValue={(selected) => {
+                  //   console.log(selected.length, selected);
+                  //   if (selected.length === 0) {
+                  //     return <em>Placeholder</em>;
+                  //   }
+
+                  //   return selected;
+                  // }}
                 />
+                <TableCell align="right">
+                  <ViewButton invoiceId={row["Invoice No"]} />
+                </TableCell>
               </TableRow>
             ))}
             {emptyRows > 0 && (

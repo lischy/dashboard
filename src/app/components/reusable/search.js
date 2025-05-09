@@ -3,11 +3,13 @@ import React from "react";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
-import AccountCircle from "@mui/icons-material/AccountCircle";
+import SearchIcon from "@mui/icons-material/Search";
 
-const search = ({ placeholder }) => {
+const Search = ({ placeholder }) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
+
   const { replace } = useRouter();
 
   const debounce = (callback, wait) => {
@@ -23,15 +25,19 @@ const search = ({ placeholder }) => {
   const handleSearch = debounce((searchTerm) => {
     const params = new URLSearchParams(searchParams);
     if (searchTerm) {
-      params.set("query", searchTerm);
+      params.set("query", searchTerm.trim());
     } else {
       params.delete("query");
     }
     replace(`${pathname}?${params.toString()}`);
+    // router.push(`/search?query=${searchTerm}`);
+    // replace(`/search?query=${searchTerm}`);
     console.log(searchTerm);
+    // console.log(router, `${pathname}/search/?${params.toString()}`);
   }, 4000);
   return (
     <TextField
+      size="small"
       sx={{ width: "75%" }}
       placeholder={placeholder}
       onChange={(e) => handleSearch(e.target.value)}
@@ -40,7 +46,7 @@ const search = ({ placeholder }) => {
         input: {
           startAdornment: (
             <InputAdornment position="start">
-              <AccountCircle />
+              <SearchIcon />
             </InputAdornment>
           ),
         },
@@ -49,4 +55,4 @@ const search = ({ placeholder }) => {
   );
 };
 
-export default search;
+export default Search;

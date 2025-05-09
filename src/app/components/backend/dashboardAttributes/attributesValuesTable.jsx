@@ -3,8 +3,14 @@ import { fetchtAtributeValuesById } from "@/app/lib/data";
 import Typography from "@mui/material/Typography";
 
 export default async function AttributesTable({ parent }) {
-  const attributesValues = await fetchtAtributeValuesById(parent);
-  return attributesValues ? (
+  const response = await fetchtAtributeValuesById(parent);
+
+  if (response.status !== 200) {
+    return;
+  }
+  const attributesValues = response?.data;
+
+  return attributesValues.length > 0 ? (
     <AttributesValuesTableBody
       attribValues={attributesValues}
       attributeId={parent}

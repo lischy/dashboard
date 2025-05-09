@@ -4,7 +4,8 @@ import { fetchProducts } from "@/app/lib/data";
 import Typography from "@mui/material/Typography";
 
 export default async function ProductsTable() {
-  const prods = await fetchProducts();
+  const response = await fetchProducts();
+  const prods = response?.data;
 
   return prods ? (
     <ProductsTableBody prods={prods} />

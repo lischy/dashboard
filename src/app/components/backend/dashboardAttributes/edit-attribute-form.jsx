@@ -6,6 +6,8 @@ import TextField from "@mui/material/TextField";
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
+import { editProductAttributeValue } from "@/app/lib/actions";
+import { useRouterRefreshContext } from "@/app/context/routerRefresh";
 
 import { z } from "zod";
 
@@ -19,10 +21,11 @@ const attributeSchema = z.object({
   published: z.boolean(),
 });
 
-const EditAttributeForm = ({ attributeValue }) => {
+const EditAttributeForm = ({ attributeValue, attributeId }) => {
   // const [checked, setChecked] = useState(true);
 
   const [errors, setErrors] = useState(null);
+  const { refresh, setRefresh } = useRouterRefreshContext();
 
   const [formValues, setFormValues] = React.useState(attributeValue);
 
@@ -44,7 +47,7 @@ const EditAttributeForm = ({ attributeValue }) => {
       // console.log(prev);
       return {
         ...prev,
-        [name]: name === "PUBLISHED" ? checked : value,
+        [name]: name === "published" ? checked : value,
       };
       // return { ...prev, [name]: value };
     });
@@ -56,9 +59,9 @@ const EditAttributeForm = ({ attributeValue }) => {
     //client side validation
 
     const attribute = {
-      name: formdata.get("DISPLAY NAME"),
-      value: formdata.get("VALUE"),
-      published: Boolean(formdata.get("PUBLISHED")),
+      name: formdata.get("display_name"),
+      value: formdata.get("value"),
+      published: Boolean(formdata.get("published")),
     };
     const validate = attributeSchema.safeParse(attribute);
     if (!validate.success) {
@@ -78,46 +81,60 @@ const EditAttributeForm = ({ attributeValue }) => {
       // });
       return;
     }
-    setErrors(undefined);
-    console.log(formValues);
+    const response = async () => {
+      const response = await editProductAttributeValue({
+        attribute_id: attributeId,
+        attribute_value: formValues,
+      });
+      if (response.status === 200) {
+        setRefresh(!refresh);
+        setErrors(undefined);
+      }
+    };
+
+    response();
   };
   return (
     <>
       <Form action={clientAction}>
         <TextField
-          error={errors?.name ? true : false}
-          id="outlined-basic"
-          label="Attribute value"
-          variant="outlined"
-          name="DISPLAY NAME"
-          value={formValues["DISPLAY NAME"] || ""}
-          helperText={errors?.name}
-          onChange={handleTyping}
-        />
-        <TextField
           error={errors?.value ? true : false}
           id="outlined-basic"
           label="Attribute name"
           variant="outlined"
-          name="VALUE"
-          value={formValues["VALUE"] || ""}
+          name="value"
+          value={formValues["value"] || ""}
           helperText={errors?.value}
           onChange={handleTyping}
+          sx={{ mb: 2, mt: 2 }}
         />
-        <FormGroup>
+        <TextField
+          error={errors?.name ? true : false}
+          id="outlined-basic"
+          label="Attribute value"
+          variant="outlined"
+          name="display_name"
+          value={formValues["display_name"] || ""}
+          helperText={errors?.name}
+          onChange={handleTyping}
+          sx={{ mb: 2, mt: 2 }}
+        />
+        <FormGroup sx={{ mb: 2, mt: 2 }}>
           <FormControlLabel
             control={
               <Switch
-                checked={formValues.PUBLISHED}
+                checked={formValues.published}
                 onChange={handleTyping}
                 // value={formValues.PUBLISHED}
               />
             }
-            label="Label"
-            name="PUBLISHED"
+            label="Published"
+            name="published"
           />
         </FormGroup>
-        <button type="submit">Submit</button>
+        <button type="submit" sx={{ mb: 2, mt: 2 }}>
+          Submit
+        </button>
       </Form>
       {errors && console.log(errors?.name, errors?.value)}
     </>
