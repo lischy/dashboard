@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import Footer from "@/app/(frontend)/footer";
 import Grid from "@mui/material/Grid2";
@@ -7,11 +6,11 @@ import Sidebar from "@/app/components/backend/user/sidebar";
 import CartDrawer from "@/app/components/frontend/cart-drawer";
 
 export default function Layout({ children }) {
-  const [open, setOpen] = React.useState(false);
+  // const [open, setOpen] = React.useState(false);
 
-  const handledeawertoggle = () => {
-    setOpen(!open);
-  };
+  // const handledeawertoggle = () => {
+  //   setOpen(!open);
+  // };
   return (
     <Grid
       sx={{

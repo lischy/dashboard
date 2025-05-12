@@ -1,7 +1,6 @@
 "use client";
 import * as React from "react";
 import Box from "@mui/material/Box";
-import CssBaseline from "@mui/material/CssBaseline";
 import Heading from "@/app/components/backend/heading";
 import LargeCard from "@/app/components/backend/dashboardHome/LargeCard";
 import SmallCard from "@/app/components/backend/dashboardHome/SmallCard";

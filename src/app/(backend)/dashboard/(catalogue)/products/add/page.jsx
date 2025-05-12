@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 // import { useRouter, useParams } from "next/navigation";
 import CreateProductForm from "@/app/components/backend/dashboardProducts/edit-product-form";
 import Typography from "@mui/material/Typography";
@@ -15,8 +15,8 @@ const page = () => {
   // const router = useRouter();
   // console.log(params.id);
 
-  const [value, setValue] = React.useState(1);
-  const [checked, setChecked] = React.useState(true);
+  const [value, setValue] = useState(1);
+  const [checked, setChecked] = useState(true);
 
   const handleChange = (event, newValue) => {
     console.log(newValue);

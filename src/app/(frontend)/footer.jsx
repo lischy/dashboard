@@ -31,7 +31,7 @@ const Footer = () => {
         ]}
         container
       >
-        <img src="/app-download-img-left_s5n2zf.webp" />
+        <img src="/app-download-img-left_s5n2zf.webp" alt="Meaningful text" />
         <div>
           <Typography>
             Get Your Daily Needs From Our KachaBazar Store
@@ -122,7 +122,7 @@ const Footer = () => {
           textAlign: "center",
         }}
       >
-        copyriht
+        copyright
       </Typography>
     </footer>
   );

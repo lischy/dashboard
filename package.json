@@ -16,6 +16,7 @@
     "@mui/material": "^6.1.6",
     "@mui/material-nextjs": "^6.1.6",
     "@mui/x-charts": "^7.22.2",
+    "bcryptjs": "^3.0.2",
     "fs": "0.0.1-security",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.0",
@@ -30,6 +31,7 @@
     "react-dom": "19.0.0-rc-02c0e824-20241028",
     "react-responsive-carousel": "^3.2.23",
     "swiper": "^11.2.4",
+    "uuid": "^11.1.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

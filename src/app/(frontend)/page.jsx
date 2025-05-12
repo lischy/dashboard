@@ -2,7 +2,6 @@ import React from "react";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid2";
 import Slider from "@/app/components/frontend/swiper";
-import ProductCard from "@/app/components/frontend/productCard";
 // import { useSearchParams } from "next/navigation";
 import SearchProduct from "@/app/(frontend)/search-product";
 import CouponCard from "@/app/components/frontend/coupon-card";
@@ -12,6 +11,7 @@ import BreadCrumbs from "@/app/components/frontend/breadcrumbs";
 import FeaturedCategories from "@/app/components/frontend/featuredCategories";
 import { fetchProducts } from "@/app/lib/data";
 import InfiniteScrolling from "@/app/components/frontend/InfiniteScrolling";
+
 // const MyGrid = styled(Grid)(({ theme }) => [
 //   {
 //     p: 5,

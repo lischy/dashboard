@@ -25,7 +25,7 @@ export default function BasicModal({
   valueId,
 }) {
   const [attributeValue, setAttributeValue] = useState({});
-  const attribute = async (ValueId) => {
+  const attribute = async () => {
     const response = await fetchtAtributeValueById({ valueId: valueId });
     if (response.status !== 200) return;
     setAttributeValue(response?.data);

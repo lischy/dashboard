@@ -19,8 +19,8 @@ const myauth = async (req) => {
 
   console.log(session);
 
-  const isLoggedIn = !!auth?.user;
-  const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
+  // const isLoggedIn = !!auth?.user;
+  // const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
   if (!isAuthenticated && !isOnPublicRoute) {
     return NextResponse.redirect(new URL(LOGIN, nextUrl));
   }

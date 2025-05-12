@@ -2,7 +2,6 @@
 import React from "react";
 import Grid from "@mui/material/Grid2";
 import { useColorScheme } from "@mui/material/styles";
-import Select from "@mui/material/Select";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import IconButton from "@mui/material/IconButton";
@@ -14,7 +13,7 @@ const Header = () => {
       return null;
     }
     setMode(mode === "dark" ? "light" : "dark");
-  }, [mode, systemMode]);
+  }, [mode, setMode, systemMode]);
 
   return (
     <Grid container spacing={2} sx={{ position: "sticky" }}>

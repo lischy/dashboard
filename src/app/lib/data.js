@@ -591,6 +591,35 @@ WHERE
     return { error: "Failed to fetch clients", status: 500 };
   }
 };
+
+const fetchClientOrdersCount = async ({ client_id = null } = {}) => {
+  if (!client_id) throw new Error("No client id provided");
+
+  try {
+    const query = `SELECT 
+    client_id,
+    LOWER(status) AS normalized_status,
+    COUNT(*) AS total_orders
+FROM 
+    products.clients_orders
+WHERE 
+    LOWER(status) IN ('delivered', 'pending', 'shipped', 'cancelled') AND client_id = $1
+GROUP BY 
+    client_id, LOWER(status)
+ORDER BY 
+    client_id, normalized_status;`;
+
+    const isAvailable = await isPoolAvailable();
+    if (!isAvailable) {
+      throw new Error("Database connection is not available");
+    }
+    const { rows } = await pool.query(query, [client_id]);
+    console.log(JSON.parse(JSON.stringify(rows)));
+    return { data: JSON.parse(JSON.stringify(rows)), status: 200 };
+  } catch (error) {
+    return { error: "Failed to fetch orders", status: 500 };
+  }
+};
 export {
   fetchProducts,
   fetchProductById,
@@ -612,4 +641,5 @@ export {
   fetchClientDefaultAddress,
   fetchClientAddresses,
   fetchInvoiceItems,
+  fetchClientOrdersCount,
 };

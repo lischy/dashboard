@@ -1,12 +1,13 @@
 import pool from "../../lib/connect";
 
-async function fetchProducts(req, res) {
+async function fetchProducts() {
   try {
     const { rows } = await pool.query("SELECT * FROM products.products_info"); // Query example
     // res.status(200).json(rows); // Send the results as a JSON response
     return new Response(JSON.stringify(rows), { status: 200 });
   } catch (err) {
     // res.status(500).json({ error: "Failed to fetch users" });
+    console.log(err);
     return new Response(JSON.stringify({ error: "Failed to fetch users" }), {
       status: 500,
     });
@@ -17,6 +18,6 @@ async function fetchProducts(req, res) {
 }
 
 // Handle GET request
-export async function GET(req) {
+export async function GET() {
   return fetchProducts();
 }

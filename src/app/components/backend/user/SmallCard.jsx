@@ -9,7 +9,8 @@ import Stack from "@mui/material/Stack";
 const message = `Truncation should be conditionally applicable on this long line of text
  as this is a much longer line than what the container can support.`;
 
-export default function SmallCard() {
+export default function SmallCard({ item }) {
+  console.log(item);
   return (
     <React.Fragment>
       <Card
@@ -26,16 +27,18 @@ export default function SmallCard() {
               </Avatar>
             </Stack>
             <Stack sx={{ minWidth: 0 }} direction="column">
-              <Typography noWrap>{message}</Typography>
-              <Typography component="div" variant="h5">
-                Live From Space
+              <Typography noWrap>
+                {`${item?.normalized_status} orders`}
               </Typography>
+              {/* <Typography component="div" variant="h5">
+                {`${item?.normalized_status} orders`}
+              </Typography> */}
               <Typography
                 variant="subtitle1"
                 component="div"
                 sx={{ color: "text.secondary" }}
               >
-                Mac Miller
+                {item.total_orders}
               </Typography>
             </Stack>
           </Stack>

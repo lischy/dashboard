@@ -1,13 +1,25 @@
 import Grid from "@mui/material/Grid2";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import SmallCard from "@/app/components/backend/dashboardHome/SmallCard";
+import SmallCard from "@/app/components/backend/user/SmallCard";
 import OrdersTable from "@/app/components/backend/user/ordersTable";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { fetchClientOrdersCount } from "@/app/lib/data";
+import { getCurrentUser } from "@/auth/nextjs/data";
 
-export default function Home() {
-  // const { data: session } = useSession();
-  // if (session) {
+export default async function Home() {
+  const user = await getCurrentUser({
+    withFullUser: true,
+    redirectIfNotFound: true,
+  });
+  console.log(user);
+
+  const fetchClientOrdersCountResponse = await fetchClientOrdersCount({
+    client_id: 1,
+  });
+  if (fetchClientOrdersCountResponse.status !== 200) {
+    return;
+  }
+  const data = fetchClientOrdersCountResponse.data;
   return (
     <Paper sx={{ pl: 2 }}>
       <Typography>Dashboard</Typography>
@@ -20,9 +32,9 @@ export default function Home() {
           pb: 4,
         }}
       >
-        {[5, 6, 7, 8].map((item) => (
-          <Grid key={item}>
-            <SmallCard />
+        {data.map((item, index) => (
+          <Grid key={index}>
+            <SmallCard item={item} />
           </Grid>
         ))}
       </Grid>

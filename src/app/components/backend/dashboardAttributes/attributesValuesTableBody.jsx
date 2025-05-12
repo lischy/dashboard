@@ -62,7 +62,7 @@ const AttributesTableBody = () => {
   const [page, setPage] = React.useState(0);
   const params = useParams();
   const { parent } = params;
-  const { refresh, setRefresh } = useRouterRefreshContext();
+  const { refresh } = useRouterRefreshContext();
 
   const response = async () => {
     const response = await fetchtAtributeValuesById(parent);
