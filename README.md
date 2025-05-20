@@ -626,3 +626,7 @@ Explanation:
 DO UPDATE: If a conflict is detected on the name column, this statement will update the existing row's display_name and published values with the values from the new insert.
 
 EXCLUDED: The EXCLUDED keyword refers to the row that was supposed to be inserted (but was excluded due to the conflict).
+
+---
+
+https://www.youtube.com/watch?v=bKm1rNaCFOo - data fetching enhancement

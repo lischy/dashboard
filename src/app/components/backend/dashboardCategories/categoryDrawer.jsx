@@ -18,7 +18,13 @@ import {
   AddButton,
   UploadButton,
 } from "@/app/components/backend/dashboardCategories/buttons";
-import { deleteCategoryFile, updateProduct } from "@/app/lib/actions";
+import {
+  deleteCategoryFile,
+  addProductCategory,
+  updateProductCategory,
+  uploadFile,
+} from "@/app/lib/actions";
+import { z } from "zod";
 
 const categorySchema = [
   {
@@ -31,10 +37,21 @@ const categorySchema = [
   },
 ];
 
-const CategoryDrawer = ({ open, toggleDrawer, categoryId }) => {
+const ZodCategorySchema = z.object({
+  name: z.string().trim().min(1, {
+    message: "Name must not be less than one char",
+  }),
+  description: z.string().trim().min(1, {
+    message: "Value can't be less than one char",
+  }),
+  published: z.boolean(),
+});
+
+const CategoryDrawer = ({ open, toggleDrawer, categoryId, action }) => {
   const [formValues, setFormValues] = useState(null);
-  const [blobSrc, setBlobSrc] = useState([]);
+  const [blobSrc, setBlobSrc] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState(null);
 
   console.log(categoryId);
 
@@ -97,6 +114,7 @@ const CategoryDrawer = ({ open, toggleDrawer, categoryId }) => {
     }
     // deleteFile(file.name);
     deleteCategoryFile(modifiedFileName, formValues?.category_id);
+    setBlobSrc(null);
   };
   const handleChange = async (event) => {
     console.log("called handleChange");
@@ -177,8 +195,92 @@ const CategoryDrawer = ({ open, toggleDrawer, categoryId }) => {
     // Reset the file input field (important for allowing new file selection)
     event.target.value = null;
   };
+  const handleSubmit = (formData) => {
+    try {
+      const category = {
+        name: formData.get("name"),
+        description: formData.get("description"),
+        published: Boolean(formData.get("published")),
+      };
+
+      const validate = ZodCategorySchema.safeParse(category);
+      if (!validate.success) {
+        setErrors(validate.error.flatten().fieldErrors);
+        setIsSubmitting(false);
+        return;
+      }
+      setErrors(undefined);
+      const category_image = blobSrc?.modifiedFileName
+        ? blobSrc?.modifiedFileName
+        : "default.jpg";
+      console.log(category_image, action);
+      switch (action) {
+        case "Add": {
+          // save to db
+          const response = async () => {
+            const addProductCategoryResponse = await addProductCategory({
+              category: category,
+              category_image: category_image,
+            });
+            console.log(parent, addProductCategoryResponse);
+            console.log(
+              addProductCategoryResponse.data,
+              addProductCategoryResponse.status
+            );
+            if (response.status === 200) {
+              const uploadFileResponse = async () => {
+                await uploadFile({
+                  file: blobSrc?.file,
+                  modifiedFileName: blobSrc?.modifiedFileName,
+                });
+              };
+              if (!blobSrc) {
+                return;
+              } else {
+                uploadFileResponse();
+              }
+            }
+          };
+          response();
+          break;
+        }
+        case "Edit": {
+          console.log("called");
+          const response = async () => {
+            const updateProductCategoryResponse = await updateProductCategory({
+              category: category,
+              category_image: category_image,
+              category_id: categoryId,
+            });
+            if (updateProductCategoryResponse.status === 200) {
+              const uploadFileResponse = async () => {
+                await uploadFile({
+                  file: blobSrc?.file,
+                  modifiedFileName: blobSrc?.modifiedFileName,
+                });
+              };
+              if (!blobSrc) {
+                return;
+              } else {
+                uploadFileResponse();
+              }
+            }
+          };
+          response();
+          break;
+        }
+        default: {
+          console.log("Empty action received.");
+        }
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+    } finally {
+      setIsSubmitting(false); // reset lock
+    }
+  };
   const form = () => (
-    <Box role="presentation" sx={{ width: "auto" }}>
+    <Box role="presentation" sx={{ width: "auto", p: 2 }}>
       <Grid container spacing={2}>
         <Grid
           container
@@ -224,7 +326,7 @@ const CategoryDrawer = ({ open, toggleDrawer, categoryId }) => {
                 width: "100%",
               }}
             >
-              <Form>
+              <Form action={handleSubmit}>
                 {categorySchema.map((item, index) => (
                   <Grid container key={index} sx={{ mb: 2 }}>
                     <Grid size={4}>
@@ -341,7 +443,7 @@ const CategoryDrawer = ({ open, toggleDrawer, categoryId }) => {
                   }}
                 >
                   <CancelButton handleCancel={toggleDrawer} />
-                  <AddButton />
+                  <AddButton action={action} />
                 </Stack>
               </Form>
             </div>

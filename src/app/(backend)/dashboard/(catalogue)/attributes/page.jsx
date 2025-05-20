@@ -6,7 +6,7 @@ import Search from "@/app/components/reusable/search";
 import AttributesTableBody from "@/app/components/backend/dashboardAttributes/attributesTableBody";
 import AttributeDrawerButton from "@/app/components/backend/dashboardAttributes/attributeDrawerButton";
 
-export default function attributes() {
+export default function Attributes() {
   return (
     <>
       <Typography> Attributes</Typography>

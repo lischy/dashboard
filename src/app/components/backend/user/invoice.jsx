@@ -125,7 +125,7 @@ const Invoice = ({ invoiceData }) => {
               </Typography>
               <span>{invoiceData?.client_details.name}</span>
               <Typography>
-                <span>{invoiceData?.client_details.email}</span>
+                <span>{`${invoiceData?.client_details.email}  `}</span>
                 <span>{invoiceData?.client_details.phone}</span>
               </Typography>
               <span>Nairobi</span>

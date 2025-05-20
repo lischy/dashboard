@@ -33,7 +33,7 @@ export default function DashboardHome() {
   const handleChange = (event, newValue) => {
     setValue(newValue);
     setColor(Tableau10[newValue]);
-    console.log(color);
+    // console.log(color);
   };
 
   const handleWheel = (event) => {

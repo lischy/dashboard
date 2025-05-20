@@ -1,12 +1,12 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import BasicModal from "@/app/components/backend/dashboardAttributes/modal";
 
-const page = () => {
+const Page = () => {
   const params = useParams();
   const router = useRouter();
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
   const handleClose = () => {
     router.back();
 
@@ -22,4 +22,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

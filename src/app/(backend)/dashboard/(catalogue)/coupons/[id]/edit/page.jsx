@@ -4,7 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import EditCouponForm from "@/app/components/backend/dashboardCoupons/edit-coupon-form";
 import Typography from "@mui/material/Typography";
 
-const page = () => {
+const Page = () => {
   const params = useParams();
   const router = useRouter();
   console.log(params.id);
@@ -17,4 +17,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

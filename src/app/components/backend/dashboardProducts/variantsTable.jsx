@@ -77,16 +77,16 @@ const headCells = [
   },
 ];
 
-function createData(
-  Id,
-  Image,
-  Combination,
-  Sku,
-  Barcode,
-  Price,
-  SalePrice,
-  Quantity
-) {
+function createData({
+  Id = null,
+  Image = null,
+  Combination = null,
+  Sku = null,
+  Barcode = null,
+  Price = null,
+  SalePrice = null,
+  Quantity = null,
+} = {}) {
   return { Id, Image, Combination, Sku, Barcode, Price, SalePrice, Quantity };
 }
 let productImages;
@@ -121,18 +121,17 @@ const VariantsTable = ({
 
         const combined = [
           ...filterProductVariants,
-          ...cartesianCombination?.map((item, id) =>
-            createData(
-              id + filterProductVariants.length + 1,
-              "",
+          ...cartesianCombination?.map((item, id) => ({
+            Id: id + filterProductVariants.length + 1,
+            Image: null,
+            Combination:
               cartesianCombination.length > 1 ? item?.join(", ") : item,
-              "",
-              "",
-              "",
-              "",
-              ""
-            )
-          ),
+            Sku: "",
+            Barcode: "",
+            Price: "",
+            SalePrice: "",
+            Quantity: "",
+          })),
         ];
 
         //  Normalize each combination
@@ -155,19 +154,40 @@ const VariantsTable = ({
         // console.log(uniqueData, cleanedData);
 
         setRows(cleanedData);
-        setVariantRows(cleanedData);
+        setVariantRows?.(cleanedData);
       } else {
         setRows(() => {
           return [
-            ...cartesianCombination?.map((item, id) =>
-              createData(id, "", item.join(", "), "", "", "", "", "")
+            ...cartesianCombination?.map(
+              (item, id) => ({
+                Id: id,
+                Image: null,
+                Combination: item.join(", "),
+                Sku: "",
+                Barcode: "",
+                Price: "",
+                SalePrice: "",
+                Quantity: "",
+              })
+              // createData(id, "", item.join(", "), "", "", "", "", "")
             ),
           ];
         });
-        setVariantRows(() => {
+
+        setVariantRows?.(() => {
           return [
-            ...cartesianCombination?.map((item, id) =>
-              createData(id, "", item.join(", "), "", "", "", "", "")
+            ...cartesianCombination?.map(
+              (item, id) => ({
+                Id: id,
+                Image: null,
+                Combination: item.join(", "),
+                Sku: "",
+                Barcode: "",
+                Price: "",
+                SalePrice: "",
+                Quantity: "",
+              })
+              // createData(id, "", item.join(", "), "", "", "", "", "")
             ),
           ];
         });
@@ -194,7 +214,7 @@ const VariantsTable = ({
         }
       });
       setRows(updatedRows);
-      setVariantRows(updatedRows);
+      setVariantRows?.(updatedRows);
     }
     console.log(rows);
   };
@@ -227,7 +247,7 @@ const VariantsTable = ({
       });
       console.log(updatedRows);
       setRows(updatedRows);
-      setVariantRows(updatedRows);
+      setVariantRows?.(updatedRows);
     }
   };
 
@@ -274,7 +294,7 @@ const VariantsTable = ({
     });
     // console.log(filtered, rowId);
     setRows(filtered);
-    setVariantRows(filtered);
+    setVariantRows?.(filtered);
     setOpenRemoveVariantAlert(false);
     updateProductVariants({ variants: filtered, product_id: product_id });
   };
@@ -305,7 +325,7 @@ const VariantsTable = ({
             </TableHead>
             <TableBody>
               {visibleRows.map((row, id) => {
-                // console.log(row);
+                console.log(row);
                 return (
                   <TableRow
                     key={id}
@@ -318,9 +338,9 @@ const VariantsTable = ({
                           src={
                             row?.Image
                               ? `/${row.Image}`
-                              : productImages !== null
-                              ? `/${productImages[0]}`
-                              : null
+                              : !productImages
+                              ? null
+                              : `/${productImages[0]}`
                           }
                         />
                       </Avatar>
@@ -340,9 +360,7 @@ const VariantsTable = ({
                       <ImageDialog
                         open={open}
                         onClose={handleClose}
-                        productImages={
-                          productImages !== null ? productImages : []
-                        }
+                        productImages={!productImages ? [] : productImages}
                         handleCloseProductImageClick={
                           handleCloseProductImageClick
                         }

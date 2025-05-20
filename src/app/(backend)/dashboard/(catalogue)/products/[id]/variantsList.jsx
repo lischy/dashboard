@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import TextField from "@mui/material/TextField";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -12,6 +11,7 @@ import Paper from "@mui/material/Paper";
 import TablePagination from "@mui/material/TablePagination";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
+import Image from "next/image";
 
 const VariantsList = ({ product }) => {
   const [rows, setRows] = React.useState([]);
@@ -54,7 +54,10 @@ const VariantsList = ({ product }) => {
                   >
                     <TableCell align="right">
                       <Avatar>
-                        <img src={row?.Image ? `/${row.Image}` : null} />
+                        <img
+                          src={row?.Image ? `/${row.Image}` : null}
+                          alt="Picture of the author"
+                        />
                       </Avatar>
                     </TableCell>
                     <TableCell>{row.Combination}</TableCell>

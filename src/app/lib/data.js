@@ -1,9 +1,9 @@
 "use server";
-import { products } from "../../../products";
-import { categories } from "../../../categories";
-import { attributes } from "../../../attributes";
-import { coupons } from "../../../coupons";
-import { orders } from "../../../orders";
+// import { products } from "../../../products";
+// import { categories } from "../../../categories";
+// import { attributes } from "../../../attributes";
+// import { coupons } from "../../../coupons";
+// import { orders } from "../../../orders";
 import pool from "@/app/lib/connect";
 
 // Function to check if pool is available
@@ -23,6 +23,7 @@ const fetchProducts = async ({
   page_number = 1,
   page_size = 5,
 } = {}) => {
+  // console.log(page_number, page_size);
   // we need to pass page to use on OFFSET (OFFSET (page_number - 1) * page_size;)
   // Where:page_number is the page the user is requesting (1, 2, 3, ...).
   // page_size is the number of items to be displayed per page (e.g., 10).
@@ -187,7 +188,30 @@ const fetchCategoryById = async ({ category_Id = null } = {}) => {
 // Attributes
 const fetchtAtributes = async () => {
   try {
-    const query = `SELECT *  FROM products.attributes ORDER BY attribute_id; `;
+    // const query = `SELECT *  FROM products.attributes ORDER BY attribute_id; `;
+    const query = `
+    WITH attribute_values_agg AS (
+        
+            SELECT 
+            av.attribute_id,
+                jsonb_agg(
+                    jsonb_build_object(
+                        'attribute_value_id',attribute_value_id,
+                        'value',value,
+                        'display_name', display_name
+                     )
+                     
+                 ) AS attribute_values
+          FROM products.attribute_values av 
+          WHERE published=true
+         GROUP BY av.attribute_id
+ )
+ SELECT a.*, 
+ COALESCE(av.attribute_values, '[]'::jsonb) AS attribute_values
+ FROM products.attributes a 
+ left join attribute_values_agg av 
+ on a.attribute_id = av.attribute_id;
+    `;
     const isAvailable = await isPoolAvailable();
     if (!isAvailable) {
       throw new Error("Database connection is not available");
@@ -205,7 +229,10 @@ const fetchtAtributeById = async ({ attribute_id = null } = {}) => {
     throw new Error("No  attribute to be fetched.");
   }
   try {
-    const query = `SELECT *  FROM products.attributes WHERE attribute_id=$1; `;
+    // const query = `SELECT *  FROM products.attributes WHERE attribute_id=$1; `;
+    const query = `
+    SELECT a.*, av.*  FROM products.attributes a join products.attribute_values av on a.attribute_id = av.attribute_id 
+    WHERE a.attribute_id=$1;`;
     const isAvailable = await isPoolAvailable();
     if (!isAvailable) {
       throw new Error("Database connection is not available");

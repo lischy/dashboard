@@ -18,7 +18,7 @@ import CartItemCard from "@/app/components/frontend/cart-item-card";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const cartDrawer = () => {
+const CartDrawer = () => {
   // const [open, setOpen] = React.useState(false);
   const { open, toggleDrawer } = useCartThemeContext();
 
@@ -164,4 +164,4 @@ const cartDrawer = () => {
   );
 };
 
-export default cartDrawer;
+export default CartDrawer;

@@ -20,7 +20,7 @@ export default function CategoryDrawerButton({ action, categoryId }) {
   };
   return (
     <>
-      {action === "add" ? (
+      {action === "Add" ? (
         <CreateButton label="Add category" toggleDrawer={toggleDrawer} />
       ) : (
         <EditIconButton label="Edit category" toggleDrawer={toggleDrawer} />
@@ -30,6 +30,7 @@ export default function CategoryDrawerButton({ action, categoryId }) {
           open={open}
           toggleDrawer={toggleDrawer}
           categoryId={categoryId}
+          action={action}
         />
       )}
     </>

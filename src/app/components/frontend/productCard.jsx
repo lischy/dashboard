@@ -10,7 +10,6 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import ProductModal from "@/app/components/frontend/productModal";
 import EnhancedEncryptionIcon from "@mui/icons-material/EnhancedEncryption";
-import { useCartThemeContext } from "@/app/context/cartProvider";
 import { useDraftOrderContext } from "@/app/context/draftOrderProvider";
 
 const ProductCard = ({ src, product }) => {
@@ -18,11 +17,11 @@ const ProductCard = ({ src, product }) => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   // const { cartItems } = useCartThemeContext();
-  const { draftOrder, totalItemsInCart, updateCart } = useDraftOrderContext();
+  const { draftOrder, updateCart } = useDraftOrderContext();
   // const item = cartItems.filter((cartItem) => cartItem.product_id === 8);
   // console.log(draftOrder?.cart_items, totalItemsInCart);
-  const renderIncrement = useMemo(
-    () => () => {
+  const renderIncrement = useMemo(() => {
+    function RenderComponent() {
       if (
         draftOrder?.cart_items?.some(
           (existingItem) => existingItem.product_id === product?.product_id
@@ -85,9 +84,10 @@ const ProductCard = ({ src, product }) => {
           />
         );
       }
-    },
-    [draftOrder?.cart_items]
-  );
+    }
+    RenderComponent.displayName = "RenderIncrement";
+    return RenderComponent;
+  }, [draftOrder?.cart_items]);
 
   return (
     <>
@@ -217,4 +217,5 @@ const ProductCard = ({ src, product }) => {
   );
 };
 
+ProductCard.displayName = "ProductCard";
 export default ProductCard;

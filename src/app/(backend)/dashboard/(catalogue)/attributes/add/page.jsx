@@ -1,13 +1,13 @@
 import React from "react";
-import ModalExample from "../../../../../components/backend/testModal";
+// import ModalExample from "../../../../../components/backend/testModal";
 
-const page = () => {
+const Page = () => {
   return (
     <>
       <div>page add</div>
-      <ModalExample />
+      {/* <ModalExample /> */}
     </>
   );
 };
 
-export default page;
+export default Page;

@@ -11,10 +11,9 @@ import EditProductForm from "@/app/components/backend/dashboardProducts/edit-pro
 import BasicSelect from "@/app/components/backend/dashboardProducts/select";
 import {
   CancelButton,
-  UpdateButton,
+  AddButton,
 } from "@/app/components/backend/dashboardProducts/buttons";
-import { updateProduct, updateProductVariants } from "@/app/lib/actions";
-import { fetchProductById } from "@/app/lib/data";
+import { addProduct, updateProductVariants } from "@/app/lib/actions";
 import { useParams, useRouter } from "next/navigation";
 import { z } from "zod";
 
@@ -40,11 +39,10 @@ const productSchema = z.object({
     })
   ),
   stock: z.number().int(),
-  status: z.string(),
   published: z.boolean(),
 });
 
-const Header = () => {
+const ProductTabs = () => {
   const [errors, setErrors] = useState(null);
   const [value, setValue] = React.useState(1);
   const [checked, setChecked] = React.useState(true);
@@ -59,30 +57,15 @@ const Header = () => {
   const childRef = useRef();
 
   const handleChange = (event, newValue) => {
-    console.log(newValue);
     setValue(newValue);
   };
   const handleSwitchChange = (event) => {
-    console.log(event.target.checked);
+    // console.log(event.target.checked);
     if (value === 2) {
       setValue(1);
     }
     setChecked(event.target.checked);
   };
-  // React.useEffect(() => {
-  //   const fetchProduct = async () => {
-  //     const response = await fetchProductById({ product_id: product_id });
-  //     if (response.status === 500) {
-  //       return (
-  //         <Typography>Unable to fetch products,check db connection</Typography>
-  //       );
-  //     }
-  //     const product = response?.data[0];
-  //     setProduct(product);
-  //     console.log("CALLEDEDDEEEE - header ", response.data);
-  //   };
-  //   fetchProduct();
-  // }, []);
 
   const handleClick = () => {
     if (formRef.current) {
@@ -96,22 +79,22 @@ const Header = () => {
     if (isSubmitting) return; // prevent duplicate submits
     try {
       if (value === 2) {
-        console.log("Result from form:", variantRows);
         await updateProductVariants({
           variants: variantRows,
           product_id: product_id,
         });
       } else if (value === 1) {
+        console.log("called");
+
         const productImages = childRef.current.getImageData();
-        console.log("Accessed Image Data:", productImages);
         const formdata = new FormData(event.target); // grab the form that was submitted
         const attribute = {
           name: formdata.get("product_name"),
+          product_description: formdata.get("product_description"),
           category: formdata.get("category"),
           price: formdata.get("price"),
           salePrice: formdata.get("sale_price"),
           stock: Number(formdata.get("stock")),
-          status: formdata.get("status"),
           published: Boolean(formdata.get("published")),
           product_images: [...productImages],
         };
@@ -126,13 +109,13 @@ const Header = () => {
           return;
         }
         setErrors(undefined);
-        console.log(attribute, productImages);
-        const result = await updateProduct(attribute, product_id);
+        // console.log(attribute, productImages);
+        const result = await addProduct({ product: attribute });
         const product = result.data;
-        console.log(product);
+        // console.log(product);
         // setProduct(product);
 
-        console.log("FormData entries:", result.data, attribute);
+        // console.log("FormData entries:", result.data, attribute);
       }
     } catch (err) {
       console.error("Submit error:", err);
@@ -194,8 +177,8 @@ const Header = () => {
               }}
             >
               <CancelButton handleCancel={handleCancel} />
-              <UpdateButton
-                handleProductUpdate={handleClick}
+              <AddButton
+                handleProductAdd={handleClick}
                 // formAction={clientAction}
               />
             </Stack>
@@ -206,4 +189,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default ProductTabs;

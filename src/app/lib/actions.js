@@ -35,6 +35,114 @@ const isPoolAvailable = async () => {
   }
 };
 
+const addProduct = async ({ product = null } = {}) => {
+  if (!product) throw new Error("No product details provided");
+  const price = parseFloat(product.price);
+  const salePrice = parseFloat(product.salePrice);
+  const categories = [product.category][0].split(",").map((c) => c.trim());
+
+  if (isNaN(price) || isNaN(salePrice)) {
+    throw new Error("Invalid price format");
+  }
+  try {
+    const query = `
+  INSERT INTO products.products_info
+(product_name, category, price, sale_price, stock, published, product_images, product_description)
+VALUES($1,$2,$3,$4,$5,$6,$7,$8);
+  `;
+    const isAvailable = await isPoolAvailable();
+    if (!isAvailable) {
+      throw new Error("Database connection is not available");
+    }
+    console.log([product.category][0].split(",").map((c) => c.trim()));
+
+    const { rows, errors } = await pool.query(query, [
+      product.name,
+      categories,
+      price,
+      salePrice,
+      product.stock,
+      product.published,
+      product.product_images || [],
+      product.product_description,
+    ]);
+    console.log(rows, product, errors);
+    return { data: JSON.parse(JSON.stringify(rows)), status: 200 };
+  } catch (error) {
+    console.log(error);
+    return { error: "Failed to add products", status: 500 };
+  }
+};
+const addProductCategory = async ({
+  category = null,
+  category_image = "default.jpg",
+} = {}) => {
+  if (!category) throw new Error("No category details provided");
+  console.log(category, category_image);
+
+  try {
+    const query = `INSERT INTO products.categories
+(category_image, "name", description, published)
+VALUES($1,$2,$3,$4);`;
+    const isAvailable = await isPoolAvailable();
+
+    if (!isAvailable) {
+      throw new Error("Database connection is not available");
+    }
+    // console.log(attribute.name, attribute.display_name, attribute.published);
+    const { rows, errors } = await pool.query(query, [
+      category_image,
+      category.name,
+      category.description,
+      category.published,
+    ]);
+    // console.log(rows, errors);
+    return { data: JSON.parse(JSON.stringify(rows)), status: 200 };
+  } catch (error) {
+    return {
+      error: `Error adding attribute : ${error.stack || error.message}`,
+      status: 500,
+    };
+  }
+};
+const updateProductCategory = async ({
+  category = null,
+  category_image = "default.jpg",
+  category_id = null,
+} = {}) => {
+  if (!category) throw new Error("No category details provided");
+  console.log(category, category_image);
+
+  try {
+    const query = `UPDATE products.categories
+SET category_image = $2, 
+"name"= $3, 
+description = $4, 
+published = $5
+WHERE category_id=$1`;
+    const isAvailable = await isPoolAvailable();
+
+    if (!isAvailable) {
+      throw new Error("Database connection is not available");
+    }
+    // console.log(attribute.name, attribute.display_name, attribute.published);
+    const { rows, errors } = await pool.query(query, [
+      category_id,
+      category_image,
+      category.name,
+      category.description,
+      category.published,
+    ]);
+    // console.log(rows, errors);
+    return { data: JSON.parse(JSON.stringify(rows)), status: 200 };
+  } catch (error) {
+    console.log(error);
+    return {
+      error: `Error adding attribute : ${error.stack || error.message}`,
+      status: 500,
+    };
+  }
+};
 export async function updateProduct(params, product_id) {
   // console.log(params, product_id);
   const images = [...params.product_images];
@@ -43,6 +151,7 @@ export async function updateProduct(params, product_id) {
   // console.log(images);
   const query = `UPDATE products.products_info 
   SET  product_name ='${params.name}', 
+       product_description = '${params.product_description}',
        category=ARRAY['${params.category}'],
        price =${params.price},
        sale_price=${params.salePrice},
@@ -56,7 +165,7 @@ export async function updateProduct(params, product_id) {
     throw new Error("Database connection is not available");
   }
   const { rows, errors } = await pool.query(query, [images]);
-  console.log(rows, errors);
+  // console.log(rows, errors);
   return { data: JSON.parse(JSON.stringify(rows)), status: 200 };
 }
 
@@ -585,13 +694,13 @@ const addProductAttribute = async ({ attribute = "" } = {}) => {
     if (!isAvailable) {
       throw new Error("Database connection is not available");
     }
-    console.log(attribute.name, attribute.display_name, attribute.published);
+    // console.log(attribute.name, attribute.display_name, attribute.published);
     const { rows, errors } = await pool.query(query, [
       attribute.name,
       attribute.display_name,
       attribute.published,
     ]);
-    console.log(rows, errors);
+    // console.log(rows, errors);
     return { data: JSON.parse(JSON.stringify(rows)), status: 200 };
   } catch (error) {
     return {
@@ -1117,9 +1226,12 @@ const confirmOrder = async ({ draftItem = null, total = 2000 } = {}) => {
 export {
   uploadFile,
   deleteFile,
+  addProductCategory,
+  updateProductCategory,
   deleteCategoryFile,
   updateProductVariants,
   updateProductPublishedStatus,
+  addProduct,
   addProductAttribute,
   editProductAttribute,
   deleteProductAttribute,

@@ -11,6 +11,23 @@ import { Trash2 } from "lucide-react";
 import { ZoomIn } from "lucide-react";
 import { SquarePen } from "lucide-react";
 
+export const AddButton = ({ handleProductAdd }) => {
+  return (
+    <Tooltip title="Add product">
+      <Button
+        variant="contained"
+        sx={{ width: "45%" }}
+        component="button"
+        type="submit"
+        onClick={handleProductAdd}
+        // component="button"
+        // type="submit"
+      >
+        Add product
+      </Button>
+    </Tooltip>
+  );
+};
 export const ViewButton = ({ id }) => {
   return (
     <Tooltip title="view product">
@@ -59,7 +76,7 @@ export const CancelButton = ({ handleCancel }) => {
   );
 };
 
-export const UpdateButton = ({ id, handleProductUpdate }) => {
+export const UpdateButton = ({ handleProductUpdate }) => {
   return (
     <Tooltip title="Update product">
       <Button

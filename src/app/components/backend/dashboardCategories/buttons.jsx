@@ -26,15 +26,15 @@ export const CancelButton = ({ handleCancel }) => {
   );
 };
 
-export const AddButton = () => {
+export const AddButton = ({ action }) => {
   return (
     <Tooltip title="Add category">
       <Button
         variant="contained"
         // component="button"
-        // type="submit"
+        type="submit"
       >
-        Add category
+        {action} category
       </Button>
     </Tooltip>
   );

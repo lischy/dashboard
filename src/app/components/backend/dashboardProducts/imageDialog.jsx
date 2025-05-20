@@ -15,7 +15,7 @@ const ImageDialog = ({
     console.log(value);
     handleCloseProductImageClick(value);
   };
-  if (productImages.length === 0) {
+  if (productImages?.length === 0) {
     return (
       <Dialog onClose={onClose} open={open}>
         <DialogContent>

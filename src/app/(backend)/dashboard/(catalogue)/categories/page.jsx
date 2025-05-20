@@ -19,7 +19,7 @@ export default function Categories() {
         }}
       >
         <Search placeholder="Search categories..." />
-        <CategoryDrawerButton action="add" />
+        <CategoryDrawerButton action="Add" />
       </Box>
       <CategoriesTable />
     </>

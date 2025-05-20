@@ -10,7 +10,10 @@ import MyGrid from "@/app/components/frontend/myGrid";
 import BreadCrumbs from "@/app/components/frontend/breadcrumbs";
 import FeaturedCategories from "@/app/components/frontend/featuredCategories";
 import { fetchProducts } from "@/app/lib/data";
-import InfiniteScrolling from "@/app/components/frontend/InfiniteScrolling";
+// import InfiniteScrolling from "@/app/components/frontend/InfiniteScrolling";
+import ProductCard from "@/app/components/frontend/productCard";
+import PaginationControls from "@/app/components/frontend/paginationControls";
+import Image from "next/image";
 
 // const MyGrid = styled(Grid)(({ theme }) => [
 //   {
@@ -22,12 +25,35 @@ import InfiniteScrolling from "@/app/components/frontend/InfiniteScrolling";
 //     color: theme.palette.text.dark,
 //   }),
 // ]);
+const DEFAULT_PAGE = 1;
+const DEFAULT_PER_PAGE = 5;
+const MAX_PER_PAGE = 5;
+const MAX_PAGE = 10;
 
 const Page = async ({ searchParams }) => {
-  const { query } = await searchParams;
+  let { query, page = 1, per_page = 3 } = await searchParams;
+  // const start = (Number(page) - 1) * Number(per_page);
+  // const end = start + Number(per_page);
+
   let products;
+  // Validate and clamp
+  if (isNaN(page) || page < 1) {
+    page = DEFAULT_PAGE;
+  } else if (page > MAX_PAGE) {
+    page = MAX_PAGE;
+  }
+
+  if (isNaN(per_page) || per_page < 1) {
+    per_page = DEFAULT_PER_PAGE;
+  } else if (per_page > MAX_PER_PAGE) {
+    per_page = MAX_PER_PAGE;
+  }
+
   try {
-    const response = await fetchProducts();
+    const response = await fetchProducts({
+      page_number: page,
+      page_size: per_page,
+    });
     // console.log(response.error);
     if (response.status !== 200) {
       // If the response is not 2xx, throw an error
@@ -112,18 +138,22 @@ const Page = async ({ searchParams }) => {
           }}
           container
         >
-          {/* {products.map((product) => (
-            <ProductCard
-              key={product.product_id}
-              src={`mint.jpg`}
-              product={product}
-            />
-          ))} */}
-          <InfiniteScrolling
+          {products.map((product) => {
+            // console.log(products, products.slice(start, end));
+            return (
+              <ProductCard
+                key={product.product_id}
+                src={`mint.jpg`}
+                product={product}
+              />
+            );
+          })}
+          {/* <InfiniteScrolling
             initialProducts={products ? products : []}
             search={query ? query : ""}
-          />
+            /> */}
         </Grid>
+        <PaginationControls total_pages={products[0]?.total_pages} />
       </Grid>
       <Grid
         size={12}
@@ -159,7 +189,7 @@ const Page = async ({ searchParams }) => {
             </Typography>
           </Grid>
           <Grid size={4}>
-            <img src="/delivery-boy_rluuoq.webp" alt="deliery" />
+            <img src="/delivery-boy_rluuoq.webp" alt="deliery" width="auto" />
           </Grid>
         </MyGrid>
       </Grid>

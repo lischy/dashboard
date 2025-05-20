@@ -75,6 +75,7 @@ const AttributesTableBody = () => {
   const response = async () => {
     const response = await fetchtAtributes();
     if (response.status !== 200) return;
+    console.log(response.data);
     setProductsAttributes(response.data);
   };
 

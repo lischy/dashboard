@@ -74,7 +74,7 @@ export const signIn = async (previousState, FormData) => {
     // console.log(error);
     return { error: "Failed to fetch products", status: 500 };
   }
-  redirect("/");
+  redirect("/user");
 };
 
 export async function signUp(previousState, FormData) {
@@ -134,11 +134,12 @@ export async function signUp(previousState, FormData) {
     // Set cookie (optional: HTTP-only cookie or token in response)
     //  res.setHeader("Set-Cookie", `session=${sessionId}; HttpOnly; Path=/; Max-Age=86400`);
 
-    return { status: 200, sessionId: sessionId };
+    // return { status: 200, sessionId: sessionId };
   } catch (err) {
     console.error(err);
     return { error: "Signup failed", status: 500 };
   }
+  redirect("/user");
 }
 
 export async function logOut() {

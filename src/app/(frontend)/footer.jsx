@@ -3,6 +3,7 @@ import React from "react";
 import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
+import Image from "next/image";
 
 const Footer = () => {
   return (
@@ -31,7 +32,10 @@ const Footer = () => {
         ]}
         container
       >
-        <img src="/app-download-img-left_s5n2zf.webp" alt="Meaningful text" />
+        <img
+          src="/app-download-img-left_s5n2zf.webp"
+          alt="Picture of the author"
+        />
         <div>
           <Typography>
             Get Your Daily Needs From Our KachaBazar Store

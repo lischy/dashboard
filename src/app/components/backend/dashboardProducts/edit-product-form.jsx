@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { useParams } from "next/navigation";
 import Typography from "@mui/material/Typography";
-import Form from "next/form";
 import TextField from "@mui/material/TextField";
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -15,9 +14,7 @@ import Switch from "@mui/material/Switch";
 import Grid from "@mui/material/Grid2";
 import Select from "@mui/material/Select";
 import Checkbox from "@mui/material/Checkbox";
-import OutlinedInput from "@mui/material/OutlinedInput";
 import MenuItem from "@mui/material/MenuItem";
-import FormHelperText from "@mui/material/FormHelperText";
 import ListItemText from "@mui/material/ListItemText";
 import Chip from "@mui/material/Chip";
 import Box from "@mui/material/Box";
@@ -25,11 +22,10 @@ import { uploadFile, deleteFile, updateProduct } from "@/app/lib/actions";
 import { z } from "zod";
 import Button from "@mui/material/Button";
 import CancelIcon from "@mui/icons-material/Cancel";
-import Stack from "@mui/material/Stack";
 import { createRoot } from "react-dom/client"; // Updated for React 18+
 import IconButton from "@mui/material/IconButton";
-import { CancelButton, UploadButton, UpdateButton } from "./buttons";
-import { fetchProductById } from "@/app/lib/data";
+import { UploadButton } from "./buttons";
+import { fetchProductById, fetchCategories } from "@/app/lib/data";
 
 const productSchema = z.object({
   name: z.string().trim().min(1, {
@@ -63,9 +59,6 @@ const EditProductForm = forwardRef((props, ref) => {
   // const [product, setProduct] = useState(null);
   const params = useParams();
   const product_id = params.id;
-
-  // console.log(product);
-
   // const [formValues, setFormValues] = React.useState({
   //   id: 2,
   //   "PRODUCT NAME": "cras",
@@ -78,11 +71,12 @@ const EditProductForm = forwardRef((props, ref) => {
   //   PUBLISHED: false,
   //   ACTIONS: "Edit",
   // });
-  const [formValues, setFormValues] = React.useState(null);
+  const [formValues, setFormValues] = useState(null);
   const imageButton = false;
-  const [blobSrc, setBlobSrc] = React.useState([]);
-  const [productImages, setProductImages] = React.useState([]);
+  const [blobSrc, setBlobSrc] = useState([]);
+  const [productImages, setProductImages] = useState([]);
   const [defaultImage, setDefaultImage] = useState("");
+  const [productsCategories, setProductsCategories] = useState([]);
 
   useImperativeHandle(ref, () => ({
     getImageData: () => {
@@ -120,7 +114,16 @@ const EditProductForm = forwardRef((props, ref) => {
       setDefaultImage("");
     }
   };
-  React.useEffect(() => {
+  useEffect(() => {
+    const fetchCategoriesResponse = async () => {
+      const fetchCategoriesPromise = await fetchCategories();
+      if (fetchCategoriesPromise.status !== 200) {
+        throw new Error("Unable to fetch categories");
+      }
+      setProductsCategories(fetchCategoriesPromise.data);
+    };
+    fetchCategoriesResponse();
+    if (!product_id) return;
     const fetchProduct = async () => {
       const response = await fetchProductById({ product_id: product_id });
       if (response.status === 500) {
@@ -637,10 +640,19 @@ const EditProductForm = forwardRef((props, ref) => {
         <MenuItem disabled value="">
           <em>Select category</em>
         </MenuItem>
-        {[5, 6, 7, "test"].map((name) => (
-          <MenuItem key={name} value={name}>
-            <Checkbox checked={formValues?.category?.includes(name)} />
-            <ListItemText primary={name} />
+        {productsCategories?.map((productsCategory) => (
+          <MenuItem
+            key={productsCategory.category_id}
+            value={productsCategory.name}
+          >
+            <Checkbox
+              checked={
+                formValues?.category?.includes(productsCategory.name)
+                  ? true
+                  : false
+              }
+            />
+            <ListItemText primary={productsCategory.name} />
           </MenuItem>
         ))}
       </Select>
@@ -693,7 +705,7 @@ const EditProductForm = forwardRef((props, ref) => {
         onChange={handleTyping}
         margin="normal"
       />
-      <TextField
+      {/* <TextField
         fullWidth
         error={errors?.value ? true : false}
         id="outlined-basic"
@@ -704,7 +716,7 @@ const EditProductForm = forwardRef((props, ref) => {
         helperText={errors?.value}
         onChange={handleTyping}
         margin="normal"
-      />
+      /> */}
       <Grid container spacing={2}>
         <Grid size={12}>
           <label>Coupon Banner Image:</label>
@@ -824,4 +836,5 @@ const EditProductForm = forwardRef((props, ref) => {
   );
 });
 
+EditProductForm.displayName = "EditProductForm";
 export default EditProductForm;

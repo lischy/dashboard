@@ -9,7 +9,7 @@ export default async function OrdersTable() {
     return;
   }
   const orders = response.data;
-  return orders ? (
+  return orders?.length > 0 ? (
     <OrdersTableBody data={orders} />
   ) : (
     <Typography>No orders</Typography>

@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  postgres:
+    build:
+      context: ./db
+      dockerfile: Dockerfile.dev
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: my_db
+      POSTGRES_USER: doadmin
+      POSTGRES_PASSWORD: schydev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: nextjs-app
+    environment:
+      DATABASE_URL: postgres://doadmin:schydev@postgres:5432/my_db
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    develop:
+      watch:
+        - action: sync
+          path: ./src/app
+          target: /home/app/client/src/app
+          ignore:
+            - node_modules/
+        - action: sync
+          path: ./src/auth
+          target: /home/app/client/src/auth
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+
+volumes:
+  pgdata:

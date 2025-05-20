@@ -175,7 +175,7 @@ const AttributeDrawer = ({
   };
 
   const form = () => (
-    <Box role="presentation" sx={{ width: "auto" }}>
+    <Box role="presentation" sx={{ width: "auto", p: 2 }}>
       <Grid container spacing={2}>
         <Grid
           container

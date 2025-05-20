@@ -152,12 +152,17 @@ const Invoice = ({ data }) => {
             <Grid size={3}>
               <span>Payment Method</span>
               <br />
-              <span>Card</span>
+              <span>{data?.shipping_payment_details.payment_method}</span>
             </Grid>
             <Grid size={3} sx={{ textAlign: "center" }}>
               <span>Shipping Cost</span>
               <br />
-              <span>$ 20.00</span>
+              <span>
+                {
+                  JSON.parse(data?.shipping_payment_details?.shipping_address)
+                    ?.pickup_station?.cost
+                }
+              </span>
             </Grid>
             <Grid size={3} sx={{ textAlign: "center" }}>
               <span>Discount</span>

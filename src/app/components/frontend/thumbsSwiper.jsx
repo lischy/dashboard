@@ -20,8 +20,8 @@ const ThumbsSwiper = ({ product_images }) => {
 
   const Test = () => {
     if (product_images) {
-      return product_images.map((product_image) => (
-        <SwiperSlide>
+      return product_images.map((product_image, index) => (
+        <SwiperSlide key={index}>
           <img src={`/${product_image}`} />
         </SwiperSlide>
       ));

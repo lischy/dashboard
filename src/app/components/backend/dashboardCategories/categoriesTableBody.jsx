@@ -268,7 +268,7 @@ const CategoriesTableBody = ({ categories }) => {
                     </TableCell>
                     <TableCell align="right">
                       <CategoryDrawerButton
-                        action="edit"
+                        action="Edit"
                         categoryId={row?.category_id}
                       />
                       <DeleteIconButton

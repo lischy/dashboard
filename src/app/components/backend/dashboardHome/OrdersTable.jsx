@@ -1,5 +1,5 @@
 "use client";
-import * as React from "react";
+import React, { useEffect, useState, use } from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
@@ -18,9 +18,8 @@ import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import Typography from "@mui/material/Typography";
-import { orders } from "../../../../../orders";
+import { fetchOrders } from "@/app/lib/data";
 import { ViewButton } from "@/app/components/backend/dashboardHome/buttons";
-
 import BasicSelect from "@/app/components/reusable/Select";
 
 function TablePaginationActions(props) {
@@ -92,12 +91,23 @@ TablePaginationActions.propTypes = {
   rowsPerPage: PropTypes.number.isRequired,
 };
 
-const rows = orders;
-
 export default function OrdersTable({ label }) {
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [action, setAction] = React.useState({});
+  const [action, setAction] = useState({});
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    const response = async () => {
+      const fetchOrdersResponse = await fetchOrders();
+      if (fetchOrdersResponse.status != 200) {
+        return;
+      }
+      // console.log(fetchOrdersResponse.data);
+      setOrders(fetchOrdersResponse.data);
+    };
+    response();
+  }, []);
 
   const handleActionChange = (event) => {
     const { name, value } = event.target;
@@ -111,7 +121,7 @@ export default function OrdersTable({ label }) {
   };
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - orders.length) : 0;
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -141,38 +151,46 @@ export default function OrdersTable({ label }) {
           </TableHead>
           <TableBody>
             {(rowsPerPage > 0
-              ? rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              : rows
+              ? orders?.slice(
+                  page * rowsPerPage,
+                  page * rowsPerPage + rowsPerPage
+                )
+              : orders
             ).map((row) => (
-              <TableRow key={row.id}>
+              <TableRow key={row.order_id}>
                 <TableCell style={{ width: 160 }} align="left">
-                  {row["Invoice No"]}
+                  {row["invoice_id"] ? row["invoice_id"] : row["order_id"]}
+                </TableCell>
+                <TableCell align="right">{row["order_date"]}</TableCell>
+                <TableCell align="right">{row["client_name"]}</TableCell>
+                <TableCell style={{ width: 160 }} align="right">
+                  {row["payment_method"]}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="right">
-                  {row["Order Time"]}
+                  {row["total_amount"]}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="right">
-                  {row.name}
-                </TableCell>
-                <TableCell style={{ width: 160 }} align="right">
-                  {row["Method"]}
-                </TableCell>
-                <TableCell style={{ width: 160 }} align="right">
-                  {row["Amount"]}
-                </TableCell>
-                <TableCell style={{ width: 160 }} align="right">
-                  {action[row.id] || "Change status"}
+                  {action[row.order_id] ||
+                    row?.status.toUpperCase() ||
+                    "Change status"}
                 </TableCell>
                 {/* <TableCell style={{ width: 160 }} align="right">
                   {row["Action"]}
                 </TableCell> */}
                 <BasicSelect
-                  name={row.id}
-                  menuItems={["Pending", "Delivered", "Processing", "Cancel"]}
+                  name={row.order_id}
+                  menuItems={[
+                    "Pending".toUpperCase(),
+                    "Delivered".toUpperCase(),
+                    "Processing".toUpperCase(),
+                    "Cancelled".toUpperCase(),
+                  ]}
                   label="Orders"
                   labelId="Orddemo-simple-select-label"
                   inputLabel="Orders"
-                  value={action[row.id] || ""}
+                  value={
+                    action[row.order_id] || row?.status.toUpperCase() || ""
+                  }
                   handleChange={handleActionChange}
                   component="td"
                   // renderValue={(selected) => {
@@ -185,7 +203,7 @@ export default function OrdersTable({ label }) {
                   // }}
                 />
                 <TableCell align="right">
-                  <ViewButton invoiceId={row["Invoice No"]} />
+                  <ViewButton invoiceId={row["invoice_id"]} />
                 </TableCell>
               </TableRow>
             ))}
@@ -200,7 +218,7 @@ export default function OrdersTable({ label }) {
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
                 colSpan={3}
-                count={rows.length}
+                count={orders?.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 slotProps={{

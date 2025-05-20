@@ -13,9 +13,9 @@ const InfiniteScrolling = ({ search, initialProducts }) => {
   // console.log(totalPages, pageNumber, hideLoader);
   const observer = useRef(null);
 
-  useEffect(() => {
-    setProducts([]);
-  }, [search]);
+  // useEffect(() => {
+  //   setProducts([]);
+  // }, [search]);
 
   const end = useCallback(
     (node) => {
